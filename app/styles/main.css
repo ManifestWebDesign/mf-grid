@@ -1,0 +1,11 @@
+body {
+	margin: 0;
+	padding: 0;
+	background: #004756;
+	font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.container {
+	margin: auto;
+	max-width: 1000px;
+}

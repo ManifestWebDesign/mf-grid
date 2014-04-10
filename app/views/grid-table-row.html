@@ -1,0 +1,13 @@
+<tr class="row">
+	<td class="column" ng-if="grid.options.showSelectionCheckbox">
+		<input
+			name="{{ grid.options.selectionCheckboxInputName }}"
+			value="{{ row[grid.options.selectionCheckboxInputValue] }}"
+			ng-checked="grid.isItemSelected(row.item)"
+			type="checkbox" />
+	</td>
+	<td
+		ng-repeat="column in grid.enabledColumns"
+		class="column"
+		ng-bind="grid.getColumnValue(row.item, column, $parent)"></td>
+</tr>

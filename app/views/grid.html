@@ -1,0 +1,31 @@
+<div class="grid-container" ng-show="grid.data && grid.data.length">
+	<div class="grid-header">
+		<div class="row">
+			<div class="column" ng-if="grid.options.showSelectionCheckbox" resizable="false">
+				<input
+					ng-checked="grid.allItemsSelected"
+					title="Select All"
+					type="checkbox"
+					class="check-all" />
+			</div>
+			<div class="column" ng-repeat="column in grid.enabledColumns">
+				<a href="javascript:void(0)" ng-click="columnClick(column, $index)">
+					{{ column.name }}
+					&nbsp;<span
+						ng-show="search && search.order_by === column.orderBy"
+						style="margin-left:10px;"
+						class="icon-chevron-{{ search.dir ? 'down' : 'up' }}"></span>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="grid-viewport">
+		<div ng-style="{ height: grid.totalHeight }" style="overflow:hidden;position: relative">
+			<div ng-class="{ 'table-hover' : grid.options.rowClick }" ng-style="{ marginTop: grid.pixelsBefore}">
+				<div class="grid-body">
+					<div mf-grid-row ng-repeat="row in grid.visibleData"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
