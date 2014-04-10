@@ -10,7 +10,7 @@
 			</div>
 			<div class="column" ng-repeat="column in grid.enabledColumns">
 				<a href="javascript:void(0)" ng-click="columnClick(column, $index)">
-					{{ column.name }}
+					{{ column.displayName }}
 					&nbsp;<span
 						ng-show="search && search.order_by === column.orderBy"
 						style="margin-left:10px;"

@@ -30,10 +30,10 @@ MfGridCtrl.prototype = {
 	headerRowHeight: 0,
 	scrollTop: 0,
 	getColumnValue: function (row, column, scope) {
-		if (typeof column.value === 'string') {
-			return row[column.value];
+		if (typeof column.field === 'string') {
+			return row[column.field];
 		}
-		return column.value(scope || {}, row);
+		return column.field(scope || {}, row);
 	},
 	isItemSelected: function(item) {
 		return this.selectedItems.indexOf(item) !== -1;
@@ -131,18 +131,18 @@ MfGridCtrl.prototype = {
 				var colVal = columns[i];
 
 				if (typeof colVal === 'string') {
-					colVal = { name: colVal, value: colVal, orderBy: colVal };
+					colVal = { displayName: colVal, field: colVal, orderBy: colVal };
 				}
 
 				if (
 					this.options.ignoreColumns
-					&& this.options.ignoreColumns.hasOwnProperty(colVal.value)
+					&& this.options.ignoreColumns.hasOwnProperty(colVal.field)
 				) {
 					continue;
 				}
 
-				if (typeof colVal.value === 'string') {
-					colVal.value = this.$parse(colVal.value);
+				if (typeof colVal.field === 'string') {
+					colVal.field = this.$parse(colVal.field);
 				}
 
 				this.enabledColumns.push(colVal);
@@ -150,7 +150,7 @@ MfGridCtrl.prototype = {
 		} else {
 			if (data && data.length > 0) {
 				for (var col in data[0]) {
-					this.enabledColumns.push({ name: col, value: col, orderBy: col });
+					this.enabledColumns.push({ displayName: col, field: col, orderBy: col });
 				}
 			}
 		}

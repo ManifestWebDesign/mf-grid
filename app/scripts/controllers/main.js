@@ -9,8 +9,8 @@ angular.module('app')
 		showSelectionCheckbox: true,
 		rowHeight: 30,
 		headerRowHeight: 50,
-		columns: [
-			{ name: 'Index', value: 'gridIndex' },
+		columnDefs: [
+			{ displayName: 'Index', field: 'gridIndex' },
 			'foo'
 		]
 	};
