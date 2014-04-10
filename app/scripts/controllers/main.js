@@ -8,18 +8,26 @@ angular.module('app')
 		data: 'data',
 		showSelectionCheckbox: true,
 		rowHeight: 30,
+		enableSorting: true,
 		headerRowHeight: 50,
 		columnDefs: [
 			{ displayName: 'Index', field: 'gridIndex', width: '30%' },
-			{ displayName: 'Foo', field: 'foo', width: '70%' }
+			{ displayName: 'Foo', field: 'foo', width: '30%' },
+			{ displayName: 'Bar', field: 'bar', width: '30%' },
+			{ displayName: 'Time', field: 'time', width: '30%', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]
 	};
 
 	$scope.data = [];
 
-	for (var x = 0; x < 5000; ++x) {
+	$scope.data.push({});
+	var now = new Date().getTime();
+
+	for (var x = 0; x < 100; ++x) {
 		$scope.data.push({
-			foo: 'bar' + x
+			foo: 'bar' + x,
+			bar: x,
+			time: new Date(now + x)
 		});
 	}
 

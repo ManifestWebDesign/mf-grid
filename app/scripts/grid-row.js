@@ -12,15 +12,19 @@ angular.module('mf-grid')
 		compile: function compile(tElement, tAttrs, transclude) {
 			return {
 				post: function(scope, $el, attrs, grid) {
-					$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
+					$el.height(grid.options.rowHeight);
 
-						$el.append($compile(html)(scope));
-						$el.height(grid.options.rowHeight);
-
-						scope.$watch('grid.rowsBefore', function(rowBefore){
-							scope.gridIndex = rowBefore + scope.$index;
-						});
+					scope.$watch('grid.rowsBefore', function(rowBefore){
+						scope.gridIndex = rowBefore + scope.$index;
 					});
+
+					if (grid.options.rowTemplate) {
+						$el.append($compile(grid.options.rowTemplate)(scope));
+					} else {
+						$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
+							$el.append($compile(html)(scope));
+						});
+					}
 				}
 			};
 		}

@@ -1,5 +1,21 @@
 (function(){
 
+var defaultRowTemplate = '<td'
++ ' ng-if="grid.options.showSelectionCheckbox"'
++ ' ng-style="{ width: grid.getCheckboxColumnWidth() }"'
++ ' class="column">'
++ '<input'
++ ' name="{{ grid.options.selectionCheckboxInputName }}"'
++ ' value="{{ row[grid.options.selectionCheckboxInputValue] }}"'
++ ' ng-checked="grid.isItemSelected(row.item)"'
++ ' type="checkbox" />'
++ '</td>'
++ '<td'
++ ' ng-repeat="column in grid.enabledColumns"'
++ ' ng-style="grid.getColumnStyle(column)"'
++ ' ng-bind="grid.getColumnValue(row.item, column, $parent)"'
++ ' class="column"></td>';
+
 angular.module('mf-grid')
 
 .directive('mfGrid', ['$parse', '$http', '$templateCache', '$compile', function($parse, $http, $templateCache, $compile) {
@@ -10,8 +26,11 @@ angular.module('mf-grid')
 			$body = $el.find('.grid-body'),
 			viewPortElement = $el.find('.grid-viewport').get(0);
 
-		grid.options.rowTemplateUrl = grid.options.rowTemplateUrl || 'views/grid-table-row.html',
 		grid.options.rowHeight = parseInt(grid.options.rowHeight, 10) || 50;
+
+		if (!grid.options.rowTemplateUrl && !grid.options.rowTemplate) {
+			grid.options.rowTemplate = defaultRowTemplate;
+		}
 
 		scope.$watchCollection(grid.options.data, function(r) {
 			grid.setData(r);
@@ -52,6 +71,8 @@ angular.module('mf-grid')
 		scope.columnClick = function(column, index) {
 			if (grid.options.columnClick) {
 				grid.options.columnClick(typeof column.value === 'string' ? column.value : column, index);
+			} else {
+				grid.sortByColumn(column);
 			}
 		};
 
@@ -108,7 +129,7 @@ angular.module('mf-grid')
 		replace: true,
 		controller: 'MfGridCtrl',
 		controllerAs: 'grid',
-		templateUrl: 'views/grid-table.html',
+		templateUrl: 'views/grid.html',
 		link: function(scope, $el, attrs, grid) {
 			var optionsName = attrs.mfGrid || attrs.mfGridTable,
 				optsGetter = $parse(optionsName);

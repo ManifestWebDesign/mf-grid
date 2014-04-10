@@ -6,14 +6,98 @@ Array.prototype.remove = Array.prototype.remove || function(from, to) {
 	return this.push.apply(this, rest);
 };
 
-var MfGridCtrl = function MfGridCtrl($parse) {
+var MfGridCtrl = function MfGridCtrl($parse, $interpolate) {
 	this.options = {};
 	this.$parse = $parse;
+	this.$interpolate = $interpolate;
 	this.data = [];
 	this.enabledColumns = [];
 	this.selectedItems = [];
 	this.visibleData = [];
 };
+
+var sortService = {};
+ // this takes an piece of data from the cell and tries to determine its type and what sorting
+ // function to use for it
+ // @value - the cell data
+ sortService.guessSortFn = function(value) {
+	 var itemType = typeof(value);
+
+	 //check for numbers and booleans
+	 switch (itemType) {
+		 case 'number':
+			 return sortService.sortNumber;
+		 case 'boolean':
+			 return sortService.sortBool;
+		 case 'string':
+			 // if number string return number string sort fn. else return the str
+			 return value.match(/^[-+]?[£$¤]?[\d,.]+%?$/) ? sortService.sortNumberStr : sortService.sortAlpha;
+		 default:
+			 //check if the item is a valid Date
+			 if (Object.prototype.toString.call(value) === '[object Date]') {
+				 return sortService.sortDate;
+			 } else {
+				 // finally just sort the basic sort...
+				 return sortService.basicSort;
+			 }
+	 }
+ };
+ //#region Sorting Functions
+ sortService.basicSort = function(a, b) {
+	 if (a === b) {
+		 return 0;
+	 }
+	 if (a < b) {
+		 return -1;
+	 }
+	 return 1;
+ };
+ sortService.sortNumber = function(a, b) {
+	 return a - b;
+ };
+ sortService.sortNumberStr = function(a, b) {
+	 var numA, numB, badA = false, badB = false;
+	 numA = parseFloat(a.replace(/[^0-9.-]/g, ''));
+	 if (isNaN(numA)) {
+		 badA = true;
+	 }
+	 numB = parseFloat(b.replace(/[^0-9.-]/g, ''));
+	 if (isNaN(numB)) {
+		 badB = true;
+	 }
+	 // we want bad ones to get pushed to the bottom... which effectively is "greater than"
+	 if (badA && badB) {
+		 return 0;
+	 }
+	 if (badA) {
+		 return 1;
+	 }
+	 if (badB) {
+		 return -1;
+	 }
+	 return numA - numB;
+ };
+ sortService.sortAlpha = function(a, b) {
+	 var strA = a.toLowerCase(),
+		 strB = b.toLowerCase();
+	 return strA === strB ? 0 : (strA < strB ? -1 : 1);
+ };
+ sortService.sortDate = function(a, b) {
+	 var timeA = a.getTime(),
+		 timeB = b.getTime();
+	 return timeA === timeB ? 0 : (timeA < timeB ? -1 : 1);
+ };
+ sortService.sortBool = function(a, b) {
+	 if (a && b) {
+		 return 0;
+	 }
+	 if (!a && !b) {
+		 return 0;
+	 } else {
+		 return a ? 1 : -1;
+	 }
+ };
+ //#endregion
 
 MfGridCtrl.prototype = {
 	options: null,
@@ -29,17 +113,65 @@ MfGridCtrl.prototype = {
 	height: 0,
 	headerRowHeight: 0,
 	scrollTop: 0,
-	getColumnValue: function (row, column, scope) {
-		if (typeof column.field === 'string') {
-			return row[column.field];
+	sortColumn: null,
+	oldLength: 0,
+	getColumnValueRaw: function (row, column, scope) {
+		if (typeof column.valueRaw === 'string') {
+			return row[column.valueRaw];
 		}
-		return column.field(scope || {}, row);
+		return column.valueRaw(scope || {}, row);
+	},
+	getColumnValue: function (row, column, scope) {
+		if (typeof column.valueFiltered === 'undefined') {
+			return this.getColumnValueRaw(row, column, scope);
+		}
+		if (typeof column.valueFiltered === 'string') {
+			return row[column.valueFiltered];
+		}
+		return column.valueFiltered(row);
+	},
+	sortByColumn: function(column) {
+		var grid = this;
+		if (this.sortColumn === column) {
+			this.data.reverse();
+			return;
+		}
+		this.sortColumn = column;
+
+		var sortFn = column.sortFn;
+
+		this.data.sort(function(a, b) {
+			a = grid.getColumnValueRaw(a, column);
+			b = grid.getColumnValueRaw(b, column);
+
+			var hasA = typeof a !== 'undefined' && a !== null,
+				hasB = typeof b !== 'undefined' && b !== null;
+
+			if (!hasA && !hasB) {
+				return 0;
+			}
+			if (hasA && !hasB) {
+				return -1;
+			}
+			if (!hasA && hasB) {
+				return 1;
+			}
+
+			if (typeof sortFn === 'undefined') {
+				sortFn = sortService.guessSortFn(a);
+			}
+
+			return sortFn(a, b);
+		});
+	},
+	isColumnSortable: function(column) {
+		return this.options.enableSorting && column.sortable;
 	},
 	getCheckboxColumnWidth: function() {
 		return '30px';
 	},
-	getColumnWidth: function (column) {
-		return column.width;
+	getColumnStyle: function (column) {
+		return { width: column.width };
 	},
 	isItemSelected: function(item) {
 		return this.selectedItems.indexOf(item) !== -1;
@@ -123,8 +255,42 @@ MfGridCtrl.prototype = {
 		}
 		this.allItemsSelected = true;
 	},
+	buildColumn: function(columnDef) {
+		if (typeof columnDef === 'string') {
+			columnDef = {
+				displayName: columnDef,
+				field: columnDef,
+				orderBy: columnDef,
+				valueFiltered: columnDef,
+				valueRaw: columnDef
+			};
+		} else {
+			if (
+				typeof columnDef.cellFilter !== 'undefined'
+				&& columnDef.cellFilter.length > 0
+				&& typeof columnDef.valueFiltered === 'undefined'
+			) {
+				columnDef.valueFiltered = this.$interpolate('{{ ' + columnDef.field + ' | ' + columnDef.cellFilter + ' }}');
+			}
+
+			if (
+				typeof columnDef.valueRaw === 'undefined'
+			) {
+				columnDef.valueRaw = this.$parse(columnDef.field);
+			}
+		}
+
+		if (typeof columnDef.sortable === 'undefined') {
+			columnDef.sortable = true;
+		}
+
+		return columnDef;
+	},
 	setData: function(data) {
+		var resort = this.data !== data || this.oldLength !== data.length;
+
 		this.data = data || [];
+		this.oldLength = data.length;
 		this.selectedItems = [];
 		this.allItemsSelected = false;
 		this.enabledColumns = [];
@@ -133,32 +299,27 @@ MfGridCtrl.prototype = {
 
 		if (columns) {
 			for (var i = 0, l = columns.length; i < l; ++i) {
-
-				var colVal = columns[i];
-
-				if (typeof colVal === 'string') {
-					colVal = { displayName: colVal, field: colVal, orderBy: colVal };
-				}
+				var column = this.buildColumn(columns[i]);
 
 				if (
 					this.options.ignoreColumns
-					&& this.options.ignoreColumns.hasOwnProperty(colVal.field)
+					&& this.options.ignoreColumns.hasOwnProperty(column.field)
 				) {
 					continue;
 				}
 
-				if (typeof colVal.field === 'string') {
-					colVal.field = this.$parse(colVal.field);
-				}
-
-				this.enabledColumns.push(colVal);
+				this.enabledColumns.push(column);
 			}
 		} else {
 			if (data && data.length > 0) {
 				for (var col in data[0]) {
-					this.enabledColumns.push({ displayName: col, field: col, orderBy: col });
+					this.enabledColumns.push(this.buildColumn(col));
 				}
 			}
+		}
+
+		if (resort && this.sortColumn) {
+			this.sortByColumn(this.sortColumn);
 		}
 
 		this.updateVisibleItems();
@@ -167,8 +328,8 @@ MfGridCtrl.prototype = {
 
 angular.module('mf-grid', [])
 
-.controller('MfGridCtrl', ['$parse', function($parse) {
-	return new MfGridCtrl($parse);
+.controller('MfGridCtrl', ['$parse', '$interpolate', function($parse, $interpolate) {
+	return new MfGridCtrl($parse, $interpolate);
 }]);
 
 })();
