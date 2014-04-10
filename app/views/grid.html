@@ -1,14 +1,17 @@
 <div class="grid-container" ng-show="grid.data && grid.data.length">
 	<div class="grid-header">
 		<div class="row">
-			<div class="column" ng-if="grid.options.showSelectionCheckbox" resizable="false">
+			<div class="column" ng-if="grid.options.showSelectionCheckbox" ng-style="{ width: grid.getCheckboxColumnWidth() }" resizable="false">
 				<input
 					ng-checked="grid.allItemsSelected"
 					title="Select All"
 					type="checkbox"
 					class="check-all" />
 			</div>
-			<div class="column" ng-repeat="column in grid.enabledColumns">
+			<div
+				class="column"
+				ng-repeat="column in grid.enabledColumns"
+				ng-style="{ width: grid.getColumnWidth(column) }">
 				<a href="javascript:void(0)" ng-click="columnClick(column, $index)">
 					{{ column.displayName }}
 					&nbsp;<span
@@ -23,7 +26,7 @@
 		<div ng-style="{ height: grid.totalHeight }" style="overflow:hidden;position: relative">
 			<div ng-class="{ 'table-hover' : grid.options.rowClick }" ng-style="{ marginTop: grid.pixelsBefore}">
 				<div class="grid-body">
-					<div mf-grid-row ng-repeat="row in grid.visibleData"></div>
+					<div mf-grid-row ng-repeat="row in grid.visibleData" class="row"></div>
 				</div>
 			</div>
 		</div>

@@ -35,6 +35,12 @@ MfGridCtrl.prototype = {
 		}
 		return column.field(scope || {}, row);
 	},
+	getCheckboxColumnWidth: function() {
+		return '30px';
+	},
+	getColumnWidth: function (column) {
+		return column.width;
+	},
 	isItemSelected: function(item) {
 		return this.selectedItems.indexOf(item) !== -1;
 	},

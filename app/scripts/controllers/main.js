@@ -10,8 +10,8 @@ angular.module('app')
 		rowHeight: 30,
 		headerRowHeight: 50,
 		columnDefs: [
-			{ displayName: 'Index', field: 'gridIndex' },
-			'foo'
+			{ displayName: 'Index', field: 'gridIndex', width: '30%' },
+			{ displayName: 'Foo', field: 'foo', width: '70%' }
 		]
 	};
 

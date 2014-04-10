@@ -9,19 +9,20 @@ angular.module('mf-grid')
 		scope: true,
 		replace: true,
 		require: '^mfGrid',
-		link: function compile(scope, $el, attrs, grid) {
+		compile: function compile(tElement, tAttrs, transclude) {
+			return {
+				post: function(scope, $el, attrs, grid) {
+					$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
 
-			$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
+						$el.append($compile(html)(scope));
+						$el.height(grid.options.rowHeight);
 
-				var $newEl = $compile(html)(scope);
-				$el.replaceWith($newEl);
-				$newEl.height(grid.options.rowHeight);
-
-				scope.$watch('grid.rowsBefore', function(rowBefore){
-					scope.gridIndex = rowBefore + scope.$index;
-				});
-
-			});
+						scope.$watch('grid.rowsBefore', function(rowBefore){
+							scope.gridIndex = rowBefore + scope.$index;
+						});
+					});
+				}
+			};
 		}
 	};
 }]);
