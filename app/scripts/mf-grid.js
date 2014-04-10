@@ -129,7 +129,7 @@ angular.module('mf-grid')
 		replace: true,
 		controller: 'MfGridCtrl',
 		controllerAs: 'grid',
-		templateUrl: 'views/grid.html',
+		templateUrl: 'views/mf-grid.html',
 		link: function(scope, $el, attrs, grid) {
 			var optionsName = attrs.mfGrid || attrs.mfGridTable,
 				optsGetter = $parse(optionsName);
@@ -145,6 +145,35 @@ angular.module('mf-grid')
 //					$el.replaceWith($newEl);
 //					linker(scope, $newEl, attrs, grid);
 //				});
+		}
+	};
+}])
+
+.directive('mfGridRow', ['$compile', '$http', '$templateCache', function($compile, $http, $templateCache) {
+
+	return {
+		restrict: 'A',
+		scope: true,
+		replace: true,
+		require: '^mfGrid',
+		compile: function compile(tElement, tAttrs, transclude) {
+			return {
+				post: function(scope, $el, attrs, grid) {
+					$el.height(grid.options.rowHeight);
+
+					scope.$watch('grid.rowsBefore', function(rowBefore){
+						scope.gridIndex = rowBefore + scope.$index;
+					});
+
+					if (grid.options.rowTemplate) {
+						$el.append($compile(grid.options.rowTemplate)(scope));
+					} else {
+						$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
+							$el.append($compile(html)(scope));
+						});
+					}
+				}
+			};
 		}
 	};
 }]);
