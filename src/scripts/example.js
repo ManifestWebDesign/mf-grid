@@ -6,8 +6,25 @@ angular.module('app', [
 
 .controller('MainCtrl', function($scope) {
 
+	$scope.data = [];
+
+	$scope.data.push({});
+	var now = new Date().getTime();
+
+	for (var x = 0; x < 10000; ++x) {
+		$scope.data.push({
+			foo: 'bar' + x,
+			bar: x,
+			time: new Date(now + x)
+		});
+	}
+
 	$scope.gridOpts = {
 		data: 'data',
+		selectedItems: [
+			$scope.data[0],
+			$scope.data[1]
+		],
 		showSelectionCheckbox: true,
 		rowHeight: 35,
 		enableSorting: true,
@@ -29,19 +46,6 @@ angular.module('app', [
 			{ displayName: 'Time', field: 'time', width: '30%', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]
 	};
-
-	$scope.data = [];
-
-	$scope.data.push({});
-	var now = new Date().getTime();
-
-	for (var x = 0; x < 10000; ++x) {
-		$scope.data.push({
-			foo: 'bar' + x,
-			bar: x,
-			time: new Date(now + x)
-		});
-	}
 
 });
 

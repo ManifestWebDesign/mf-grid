@@ -307,7 +307,16 @@ MfGridCtrl.prototype = {
 
 		this._data = data;
 		this._oldLength = data.length;
-		this.selectedItems = [];
+
+		var newSelectedItems = [];
+		for (var x = 0, l = this.selectedItems.length; x < l; ++x) {
+			var item = this.selectedItems[x];
+			if (data.indexOf(item) !== -1) {
+				newSelectedItems.push(item);
+			}
+		}
+
+		this.selectedItems = newSelectedItems;
 		this.allItemsSelected = false;
 		this.enabledColumns = [];
 
