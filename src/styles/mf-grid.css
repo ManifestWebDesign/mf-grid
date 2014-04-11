@@ -1,12 +1,12 @@
 .grid-container {
 	position: relative;
+	background: #fff;
 }
 
 .grid-container table {
 	table-layout: fixed;
 	border-collapse: collapse;
 	border-spacing: 0;
-	background: #fff;
 	margin: 0;
 	width: auto;
 }
