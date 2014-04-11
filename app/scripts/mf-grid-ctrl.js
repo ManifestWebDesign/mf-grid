@@ -7,13 +7,13 @@ Array.prototype.remove = Array.prototype.remove || function(from, to) {
 };
 
 var MfGridCtrl = function MfGridCtrl($parse, $interpolate) {
-	this.options = {};
 	this.$parse = $parse;
 	this.$interpolate = $interpolate;
-	this.data = [];
+	this._data = [];
 	this.enabledColumns = [];
 	this.selectedItems = [];
 	this.visibleData = [];
+	this.columnDefs = [];
 };
 
 var sortService = {};
@@ -100,8 +100,8 @@ var sortService = {};
  //#endregion
 
 MfGridCtrl.prototype = {
-	options: null,
-	data: null,
+	_data: null,
+	columnDefs: null,
 	enabledColumns: null,
 	selectedItems: null,
 	allItemsSelected: false,
@@ -111,10 +111,14 @@ MfGridCtrl.prototype = {
 	itemsAfter: 0,
 	pixelsBefore: 0,
 	height: 0,
+	viewportHeight: 0,
 	headerRowHeight: 0,
+	rowHeight: 30,
 	scrollTop: 0,
 	sortColumn: null,
-	oldLength: 0,
+	_oldLength: 0,
+	headerColumnClick: null,
+	rowClick: null,
 	getColumnValueRaw: function (item, column, scope) {
 		if (typeof column.valueRaw === 'string') {
 			return item[column.valueRaw];
@@ -133,14 +137,14 @@ MfGridCtrl.prototype = {
 	sortByColumn: function(column) {
 		var grid = this;
 		if (this.sortColumn === column) {
-			this.data.reverse();
+			this._data.reverse();
 			return;
 		}
 		this.sortColumn = column;
 
 		var sortFn = column.sortFn;
 
-		this.data.sort(function(a, b) {
+		this._data.sort(function(a, b) {
 			a = grid.getColumnValueRaw(a, column);
 			b = grid.getColumnValueRaw(b, column);
 
@@ -165,7 +169,7 @@ MfGridCtrl.prototype = {
 		});
 	},
 	isColumnSortable: function(column) {
-		return this.options.enableSorting && column.sortable;
+		return this.enableSorting && column.sortable;
 	},
 	getCheckboxColumnWidth: function() {
 		return '30px';
@@ -173,8 +177,8 @@ MfGridCtrl.prototype = {
 	getColumnStyle: function (column) {
 		return { width: column.width };
 	},
-	setHeight: function(height) {
-		this.height = height;
+	setViewportHeight: function(height) {
+		this.viewportHeight = height;
 		this.updateVisibleItems();
 	},
 	setHeaderRowHeight: function(height) {
@@ -195,20 +199,20 @@ MfGridCtrl.prototype = {
 		this.visibleData.length = visibleItems.length;
 	},
 	updateVisibleItems: function() {
-		var rowHeight = this.options.rowHeight,
-			height = this.height,
-			totalItems = this.data.length,
+		var rowHeight = this.rowHeight,
+			height = this.viewportHeight,
+			totalItems = this._data.length,
 			maxVisibleItems = Math.ceil(height / rowHeight);
 
 		this.totalHeight = totalItems * rowHeight;
 
 		if (totalItems <= maxVisibleItems) {
 			this.pixelsAfter = this.itemsBefore = this.pixelsBefore = this.itemsAfter = 0;
-			this.setVisibleItems(this.data);
+			this.setVisibleItems(this._data);
 			return;
 		}
 
-		var bleed = 5;
+		var bleed = 3;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
 			itemsBefore = Math.floor(scrollTop / rowHeight),
@@ -222,13 +226,13 @@ MfGridCtrl.prototype = {
 		this.itemsAfter = totalItems - end;
 		this.pixelsAfter = this.itemsAfter * rowHeight;
 
-		this.setVisibleItems(this.data.slice(this.itemsBefore, end));
+		this.setVisibleItems(this._data.slice(this.itemsBefore, end));
 	},
 	isItemSelected: function(item) {
 		return this.selectedItems.indexOf(item) !== -1;
 	},
 	updateCheckAll: function(){
-		this.allItemsSelected = this.data.length === this.selectedItems.length;
+		this.allItemsSelected = this._data.length === this.selectedItems.length;
 	},
 	selectItem: function(item, selected) {
 		var index = this.selectedItems.indexOf(item),
@@ -250,8 +254,8 @@ MfGridCtrl.prototype = {
 			this.selectedItems.length = 0;
 			return;
 		}
-		for (var i = 0, l = this.data.length; i < l; ++i) {
-			this.selectedItems.push(this.data[i]);
+		for (var i = 0, l = this._data.length; i < l; ++i) {
+			this.selectedItems.push(this._data[i]);
 		}
 		this.allItemsSelected = true;
 	},
@@ -287,23 +291,27 @@ MfGridCtrl.prototype = {
 		return columnDef;
 	},
 	setData: function(data) {
-		var resort = this.data !== data || this.oldLength !== data.length;
+		var resort = this._data !== data || this._oldLength !== data.length;
 
-		this.data = data || [];
-		this.oldLength = data.length;
+		if (data === null || typeof data === 'undefined') {
+			data = [];
+		}
+
+		this._data = data;
+		this._oldLength = data.length;
 		this.selectedItems = [];
 		this.allItemsSelected = false;
 		this.enabledColumns = [];
 
-		var columns = this.options.columns || this.options.columnDefs;
+		var columns = this.columnDefs;
 
 		if (columns) {
 			for (var i = 0, l = columns.length; i < l; ++i) {
 				var column = this.buildColumn(columns[i]);
 
 				if (
-					this.options.ignoreColumns
-					&& this.options.ignoreColumns.hasOwnProperty(column.field)
+					this.ignoreColumns
+					&& this.ignoreColumns.hasOwnProperty(column.field)
 				) {
 					continue;
 				}
@@ -311,10 +319,8 @@ MfGridCtrl.prototype = {
 				this.enabledColumns.push(column);
 			}
 		} else {
-			if (data && data.length > 0) {
-				for (var col in data[0]) {
-					this.enabledColumns.push(this.buildColumn(col));
-				}
+			for (var col in data[0]) {
+				this.enabledColumns.push(this.buildColumn(col));
 			}
 		}
 

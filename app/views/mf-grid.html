@@ -1,4 +1,4 @@
-<div class="grid-container" ng-show="grid.data && grid.data.length">
+<div class="grid-container" ng-show="grid._data && grid._data.length">
 	<table class="table table-bordered grid-header">
 		<thead></thead>
 	</table>
@@ -6,7 +6,7 @@
 		<div class="grid-viewport-content" ng-style="{ height: grid.totalHeight }">
 			<table
 				class="table table-bordered"
-				ng-class="{ 'table-hover' : grid.options.rowClick }"
+				ng-class="{ 'table-hover' : grid.rowClick }"
 				ng-style="{ top : grid.pixelsBefore }">
 				<tbody class="grid-body"></tbody>
 			</table>
