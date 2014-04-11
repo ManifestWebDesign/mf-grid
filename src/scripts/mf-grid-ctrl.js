@@ -113,6 +113,7 @@ MfGridCtrl.prototype = {
 	height: 0,
 	viewportHeight: 0,
 	headerRowHeight: 0,
+	enableSorting: true,
 	rowHeight: 30,
 	scrollTop: 0,
 	sortColumn: null,

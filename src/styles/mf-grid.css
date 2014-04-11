@@ -50,3 +50,12 @@
 	text-align: left;
 	white-space: nowrap;
 }
+
+.grid-header .grid-sort-icon {
+	width: 17px;
+	height: 17px;
+}
+
+.grid-header .grid-column-sortable {
+
+}

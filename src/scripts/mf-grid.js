@@ -14,12 +14,12 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + '<th'
 + ' ng-repeat="column in grid.enabledColumns"'
 + ' ng-style="grid.getColumnStyle(column)"'
-+ ' ng-bind="column.displayName"'
++ ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
 + ' ng-click="headerColumnClick(column, $index)"'
-+ ' class="grid-column">'
-+ '<span'
-+ ' ng-show="grid.sortColumn"'
-+ ' class="grid-sort-icon icon-chevron-{{ search.dir ? \'down\' : \'up\' }}"></span>'
++ ' class="grid-column">{{ column.displayName }}'
++ '<div'
++ ' ng-show="grid.enableSorting && grid.sortColumn === column"'
++ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'down\' : \'up\' }} icon-chevron-{{ grid.sortAsc ? \'down\' : \'up\' }}"></div>'
 + '</th>'
 + '</tr>';
 
@@ -43,6 +43,32 @@ var defaultRowTemplate = '<tr mf-grid-row'
 + ' ng-bind="grid.getColumnValue(row.item, column, $parent)"'
 + ' class="grid-column"></td></tr>';
 
+function getScrollBarWidth() {
+    var inner = document.createElement('p');
+    inner.style.width = "100%";
+    inner.style.height = "200px";
+
+    var outer = document.createElement('div');
+    outer.style.position = "absolute";
+    outer.style.top = "0px";
+    outer.style.left = "0px";
+    outer.style.visibility = "hidden";
+    outer.style.width = "200px";
+    outer.style.height = "150px";
+    outer.style.overflow = "hidden";
+    outer.appendChild(inner);
+
+    document.body.appendChild(outer);
+    var w1 = inner.offsetWidth;
+    outer.style.overflow = 'scroll';
+    var w2 = inner.offsetWidth;
+    if (w1 === w2) w2 = outer.clientWidth;
+
+    document.body.removeChild(outer);
+
+    return (w1 - w2);
+}
+
 angular.module('mf-grid')
 
 .directive('mfGrid', ['$parse', '$http', '$templateCache', '$compile', '$timeout', '$window', function($parse, $http, $templateCache, $compile, $timeout, $window) {
@@ -57,6 +83,7 @@ angular.module('mf-grid')
 
 		scope.$watchCollection('$parent.' + grid.data, function(r) {
 			grid.setData(r);
+			updateHeight();
 		});
 
 		scope.$watchCollection('grid.columnDefs', function(oldColumns, newColumns) {
@@ -73,6 +100,10 @@ angular.module('mf-grid')
 
 		function updateHeight() {
 			grid.setViewportHeight($viewPort.height());
+
+			if (viewPortElement.scrollHeight > viewPortElement.offsetHeight) {
+				scope.scrollbarWidth = getScrollBarWidth();
+			}
 		}
 
 		var $win = angular.element($window);
@@ -107,6 +138,10 @@ angular.module('mf-grid')
 		});
 
 		scope.headerColumnClick = function(column, index) {
+			if (!grid.enableSorting) {
+				return;
+			}
+
 			grid.sortColumn = column;
 			if (grid.sortColumn === column) {
 				grid.sortAsc = !grid.sortAsc;
