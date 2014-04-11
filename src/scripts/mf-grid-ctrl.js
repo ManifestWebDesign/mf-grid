@@ -116,6 +116,9 @@ MfGridCtrl.prototype = {
 	rowHeight: 30,
 	scrollTop: 0,
 	sortColumn: null,
+	_prevSortColumn: null,
+	_prevSortAsc: false,
+	sortAsc: true,
 	_oldLength: 0,
 	headerColumnClick: null,
 	rowClick: null,
@@ -134,13 +137,18 @@ MfGridCtrl.prototype = {
 		}
 		return column.valueFiltered(item);
 	},
-	sortByColumn: function(column) {
+	sortByColumn: function(column, asc) {
 		var grid = this;
-		if (this.sortColumn === column) {
+		if (this._prevSortColumn === column) {
+			if (this._prevSortAsc === asc) {
+				return;
+			}
+			this._prevSortAsc = asc;
 			this._data.reverse();
 			return;
 		}
-		this.sortColumn = column;
+		this._prevSortAsc = asc;
+		this._prevSortColumn = this.sortColumn = column;
 
 		var sortFn = column.sortFn;
 

@@ -15,7 +15,7 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + ' ng-repeat="column in grid.enabledColumns"'
 + ' ng-style="grid.getColumnStyle(column)"'
 + ' ng-bind="column.displayName"'
-+ ' ng-click="columnClick(column, $index)"'
++ ' ng-click="headerColumnClick(column, $index)"'
 + ' class="grid-column">'
 + '<span'
 + ' ng-show="grid.sortColumn"'
@@ -60,9 +60,6 @@ angular.module('mf-grid')
 		});
 
 		scope.$watchCollection('grid.columnDefs', function(oldColumns, newColumns) {
-			if (oldColumns === newColumns) {
-				return;
-			}
 			grid.setData(grid._data);
 		});
 
@@ -110,10 +107,17 @@ angular.module('mf-grid')
 		});
 
 		scope.headerColumnClick = function(column, index) {
-			if (grid.headerColumnClick) {
-				grid.headerColumnClick(typeof column.value === 'string' ? column.value : column, index);
+			grid.sortColumn = column;
+			if (grid.sortColumn === column) {
+				grid.sortAsc = !grid.sortAsc;
 			} else {
-				grid.sortByColumn(column);
+				grid.sortAsc = true;
+			}
+
+			if (typeof grid.headerColumnClick === 'function') {
+				grid.headerColumnClick(typeof column.value === 'string' ? column.value : column, index, grid.sortAsc);
+			} else {
+				grid.sortByColumn(column, grid.sortAsc);
 			}
 		};
 

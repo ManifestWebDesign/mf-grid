@@ -12,8 +12,15 @@ angular.module('app', [
 		rowHeight: 35,
 		enableSorting: true,
 		headerRowHeight: 50,
+		selectionChanged: function(selectedItems) {
+			console.log('selectionChanged(selectedItems)', selectedItems);
+		},
+		headerColumnClick: function(column, index, asc) {
+			console.log('headerColumnClick(column, index, asc)', column, index, asc);
+			this.sortByColumn(column, asc);
+		},
 		rowClick: function(item, itemIndex) {
-			console.log(item, itemIndex);
+			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
 			{ displayName: 'Index', field: 'itemIndex', width: '30%' },
