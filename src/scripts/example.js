@@ -40,10 +40,10 @@ angular.module('app', [
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
-			{ displayName: 'Index', field: 'itemIndex', width: '30%' },
-			{ displayName: 'Foo', field: 'foo', width: '30%' },
-			{ displayName: 'Bar', field: 'bar', width: '30%' },
-			{ displayName: 'Time', field: 'time', width: '30%', cellFilter: "date : 'd/M H:m:s.sss'" }
+			{ displayName: 'Index', field: 'itemIndex', width: '50px' },
+			{ displayName: 'Foo', field: 'foo', width: '50px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Time', field: 'time', width: '200px', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]
 	};
 

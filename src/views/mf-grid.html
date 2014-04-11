@@ -1,7 +1,9 @@
 <div class="grid-container" ng-show="grid._data && grid._data.length">
-	<table class="table table-bordered grid-header" ng-style="{ marginRight : scrollbarWidth }">
-		<thead></thead>
-	</table>
+	<div class="grid-header" ng-style="{ paddingRight : scrollbarWidth }">
+		<table class="table table-bordered">
+			<thead></thead>
+		</table>
+	</div>
 	<div class="grid-viewport">
 		<div class="grid-viewport-content" ng-style="{ height: grid.totalHeight }">
 			<table

@@ -8,7 +8,8 @@
 	border-collapse: collapse;
 	border-spacing: 0;
 	margin: 0;
-	width: auto;
+	width: 0px;
+	max-width: none;
 }
 
 .grid-viewport {
@@ -37,6 +38,7 @@
 	top: 0;
 	right: 0;
 	left: 0;
+	overflow: hidden;
 }
 
 .grid-body {
@@ -49,11 +51,6 @@
 	box-sizing: border-box;
 	text-align: left;
 	white-space: nowrap;
-}
-
-.grid-header .grid-sort-icon {
-	width: 17px;
-	height: 17px;
 }
 
 .grid-header .grid-column-sortable {

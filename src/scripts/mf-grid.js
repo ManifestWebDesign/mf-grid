@@ -103,6 +103,8 @@ angular.module('mf-grid')
 
 			if (viewPortElement.scrollHeight > viewPortElement.offsetHeight) {
 				scope.scrollbarWidth = getScrollBarWidth();
+			} else {
+				scope.scrollbarWidth = 0;
 			}
 		}
 
@@ -164,6 +166,7 @@ angular.module('mf-grid')
 
 		function updateScroll() {
 			grid.setScrollTop(viewPortElement.scrollTop);
+			$header.scrollLeft($el.find('.grid-viewport').scrollLeft());
 			scope.$apply();
 		}
 
