@@ -315,13 +315,11 @@ MfGridCtrl.prototype = {
 				newSelectedItems.push(item);
 			}
 		}
-
 		this.selectedItems = newSelectedItems;
-		this.allItemsSelected = false;
+		this.updateCheckAll();
+
 		this.enabledColumns = [];
-
 		var columns = this.columnDefs;
-
 		if (columns) {
 			for (var i = 0, l = columns.length; i < l; ++i) {
 				var column = this.buildColumn(columns[i]);
@@ -342,7 +340,7 @@ MfGridCtrl.prototype = {
 		}
 
 		if (resort && this.sortColumn) {
-			this.sortByColumn(this.sortColumn);
+			this.sortByColumn(this.sortColumn, this.sortAsc);
 		}
 
 		this.updateVisibleItems();
