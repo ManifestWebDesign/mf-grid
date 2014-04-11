@@ -107,28 +107,28 @@ MfGridCtrl.prototype = {
 	allItemsSelected: false,
 	$parse: null,
 	visibleData: null,
-	rowsBefore: 0,
+	itemsBefore: 0,
+	itemsAfter: 0,
 	pixelsBefore: 0,
-	rowsAfter: 0,
 	height: 0,
 	headerRowHeight: 0,
 	scrollTop: 0,
 	sortColumn: null,
 	oldLength: 0,
-	getColumnValueRaw: function (row, column, scope) {
+	getColumnValueRaw: function (item, column, scope) {
 		if (typeof column.valueRaw === 'string') {
-			return row[column.valueRaw];
+			return item[column.valueRaw];
 		}
-		return column.valueRaw(scope || {}, row);
+		return column.valueRaw(scope || {}, item);
 	},
-	getColumnValue: function (row, column, scope) {
+	getColumnValue: function (item, column, scope) {
 		if (typeof column.valueFiltered === 'undefined') {
-			return this.getColumnValueRaw(row, column, scope);
+			return this.getColumnValueRaw(item, column, scope);
 		}
 		if (typeof column.valueFiltered === 'string') {
-			return row[column.valueFiltered];
+			return item[column.valueFiltered];
 		}
-		return column.valueFiltered(row);
+		return column.valueFiltered(item);
 	},
 	sortByColumn: function(column) {
 		var grid = this;
@@ -173,12 +173,6 @@ MfGridCtrl.prototype = {
 	getColumnStyle: function (column) {
 		return { width: column.width };
 	},
-	isItemSelected: function(item) {
-		return this.selectedItems.indexOf(item) !== -1;
-	},
-	updateCheckAll: function(){
-		this.allItemsSelected = this.data.length === this.selectedItems.length;
-	},
 	setHeight: function(height) {
 		this.height = height;
 		this.updateVisibleItems();
@@ -203,13 +197,13 @@ MfGridCtrl.prototype = {
 	updateVisibleItems: function() {
 		var rowHeight = this.options.rowHeight,
 			height = this.height,
-			totalRows = this.data.length,
-			maxVisibleRows = Math.ceil(height / rowHeight);
+			totalItems = this.data.length,
+			maxVisibleItems = Math.ceil(height / rowHeight);
 
-		this.totalHeight = totalRows * rowHeight;
+		this.totalHeight = totalItems * rowHeight;
 
-		if (totalRows <= maxVisibleRows) {
-			this.pixelsAfter = this.rowsBefore = this.pixelsBefore = this.rowsAfter = 0;
+		if (totalItems <= maxVisibleItems) {
+			this.pixelsAfter = this.itemsBefore = this.pixelsBefore = this.itemsAfter = 0;
 			this.setVisibleItems(this.data);
 			return;
 		}
@@ -217,18 +211,24 @@ MfGridCtrl.prototype = {
 		var bleed = 5;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
-			rowsBefore = Math.floor(scrollTop / rowHeight),
-			adjustment = Math.min(bleed, rowsBefore);
+			itemsBefore = Math.floor(scrollTop / rowHeight),
+			adjustment = Math.min(bleed, itemsBefore);
 
-		this.rowsBefore = rowsBefore - adjustment;
-		this.pixelsBefore = this.rowsBefore * rowHeight;
+		this.itemsBefore = itemsBefore - adjustment;
+		this.pixelsBefore = this.itemsBefore * rowHeight;
 
-		var end = Math.min(this.rowsBefore + maxVisibleRows + (bleed + adjustment), totalRows);
+		var end = Math.min(this.itemsBefore + maxVisibleItems + (bleed + adjustment), totalItems);
 
-		this.rowsAfter = totalRows - end;
-		this.pixelsAfter = this.rowsAfter * rowHeight;
+		this.itemsAfter = totalItems - end;
+		this.pixelsAfter = this.itemsAfter * rowHeight;
 
-		this.setVisibleItems(this.data.slice(this.rowsBefore, end));
+		this.setVisibleItems(this.data.slice(this.itemsBefore, end));
+	},
+	isItemSelected: function(item) {
+		return this.selectedItems.indexOf(item) !== -1;
+	},
+	updateCheckAll: function(){
+		this.allItemsSelected = this.data.length === this.selectedItems.length;
 	},
 	selectItem: function(item, selected) {
 		var index = this.selectedItems.indexOf(item),

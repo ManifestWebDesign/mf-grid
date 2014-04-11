@@ -1,12 +1,39 @@
 (function(){
 
-var defaultRowTemplate = '<td'
+var defaultHeaderRowTemplate = '<tr class="grid-row">'
++ '<th'
++ ' ng-if="grid.options.showSelectionCheckbox"'
++ ' ng-style="{ width: grid.getCheckboxColumnWidth() }" resizable="false"'
++ ' class="grid-column">'
++ '<input'
++ ' ng-checked="grid.allItemsSelected"'
++ ' title="Select All"'
++ ' type="checkbox"'
++ ' class="check-all" />'
++ '</th>'
++ '<th'
++ ' ng-repeat="column in grid.enabledColumns"'
++ ' ng-style="grid.getColumnStyle(column)"'
++ ' ng-bind="column.displayName"'
++ ' ng-click="columnClick(column, $index)"'
++ ' class="grid-column">'
++ '<span'
++ ' ng-show="grid.sortColumn"'
++ ' class="grid-sort-icon icon-chevron-{{ search.dir ? \'down\' : \'up\' }}"></span>'
++ '</th>'
++ '</tr>';
+
+var defaultRowTemplate = '<tr mf-grid-row'
++ ' ng-repeat="row in grid.visibleData"'
++ ' ng-click="rowClick(row.item, itemIndex)"'
++ ' class="grid-row">'
++ '<td'
 + ' ng-if="grid.options.showSelectionCheckbox"'
 + ' ng-style="{ width: grid.getCheckboxColumnWidth() }"'
-+ ' class="column">'
++ ' class="grid-column">'
 + '<input'
 + ' name="{{ grid.options.selectionCheckboxInputName }}"'
-+ ' value="{{ row[grid.options.selectionCheckboxInputValue] }}"'
++ ' value="{{ row.item[grid.options.selectionCheckboxInputValue] }}"'
 + ' ng-checked="grid.isItemSelected(row.item)"'
 + ' type="checkbox" />'
 + '</td>'
@@ -14,11 +41,11 @@ var defaultRowTemplate = '<td'
 + ' ng-repeat="column in grid.enabledColumns"'
 + ' ng-style="grid.getColumnStyle(column)"'
 + ' ng-bind="grid.getColumnValue(row.item, column, $parent)"'
-+ ' class="column"></td>';
++ ' class="grid-column"></td></tr>';
 
 angular.module('mf-grid')
 
-.directive('mfGrid', ['$parse', '$http', '$templateCache', '$compile', function($parse, $http, $templateCache, $compile) {
+.directive('mfGrid', ['$parse', '$http', '$templateCache', '$compile', '$timeout', '$window', function($parse, $http, $templateCache, $compile, $timeout, $window) {
 
 	function linker(scope, $el, attrs, grid) {
 		var $viewPort = $el.find('.grid-viewport'),
@@ -27,10 +54,6 @@ angular.module('mf-grid')
 			viewPortElement = $el.find('.grid-viewport').get(0);
 
 		grid.options.rowHeight = parseInt(grid.options.rowHeight, 10) || 50;
-
-		if (!grid.options.rowTemplateUrl && !grid.options.rowTemplate) {
-			grid.options.rowTemplate = defaultRowTemplate;
-		}
 
 		scope.$watchCollection(grid.options.data, function(r) {
 			grid.setData(r);
@@ -49,30 +72,52 @@ angular.module('mf-grid')
 			}
 		});
 
+		function updateHeight() {
+			grid.setHeight($el.height());
+		}
+
+		var $win = angular.element($window);
+		function windowResize(){
+			updateHeight();
+			scope.$apply();
+		}
+
+		$win.on('resize', windowResize);
+		scope.$on('$destroy', function() {
+            $win.off('resize', windowResize);
+        });
+
 		scope.$watch('grid.options.height', function(height){
-			if (!grid.options.height) {
-				grid.options.height = height = 300;
+			if (height) {
+				$el.height(height);
 			}
-			$el.height(height);
-			$viewPort.css({
-				top: grid.options.headerRowHeight,
-				height: height - grid.options.headerRowHeight
+
+			$timeout(function(){
+				updateHeight();
 			});
-			grid.setHeight($viewPort.height());
 		});
 
 		scope.$watch('grid.options.headerRowHeight', function(height){
 			if (grid.options.headerRowHeight) {
-				$header.find('.row').height(height);
+				$header.find('.grid-row').height(height);
 			}
-			grid.setHeaderRowHeight($header.find('.row').height());
+			grid.setHeaderRowHeight($header.find('.grid-row').height());
+			$viewPort.css({
+				top: grid.options.headerRowHeight
+			});
 		});
 
-		scope.columnClick = function(column, index) {
-			if (grid.options.columnClick) {
-				grid.options.columnClick(typeof column.value === 'string' ? column.value : column, index);
+		scope.headerColumnClick = function(column, index) {
+			if (grid.options.headerColumnClick) {
+				grid.options.headerColumnClick(typeof column.value === 'string' ? column.value : column, index);
 			} else {
 				grid.sortByColumn(column);
+			}
+		};
+
+		scope.rowClick = function(item, itemIndex) {
+			if (grid.options.rowClick) {
+				grid.options.rowClick(item, itemIndex);
 			}
 		};
 
@@ -88,20 +133,12 @@ angular.module('mf-grid')
 			scope.$apply();
 		});
 
-		$body.on('click', '.row', function() {
-			if (grid.options.rowClick) {
-				var scope = angular.element(this).scope();
-				grid.options.rowClick(scope.row, scope.$index);
-				scope.$apply();
-			}
-		});
-
 		function getItem($checkbox) {
-			return $checkbox.closest('.row').scope().row.item;
+			return $checkbox.closest('.grid-row').scope().row.item;
 		}
 
-		$body.on('click', '.column', function(e) {
-			if ($(e.target).is(':not(.column)')) {
+		$body.on('click', '.grid-column', function(e) {
+			if ($(e.target).is(':not(.grid-column)')) {
 				return;
 			}
 
@@ -121,6 +158,28 @@ angular.module('mf-grid')
 			grid.selectItem(getItem(angular.element(this)), this.checked);
 			scope.$apply();
 		});
+
+		if (!grid.options.rowTemplateUrl && !grid.options.rowTemplate) {
+			grid.options.rowTemplate = defaultRowTemplate;
+		}
+		if (grid.options.rowTemplate) {
+			$body.append($compile(grid.options.rowTemplate)(scope));
+		} else {
+			$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
+				$body.append($compile(html)(scope));
+			});
+		}
+
+		if (!grid.options.headerRowTemplateUrl && !grid.options.headerRowTemplate) {
+			grid.options.headerRowTemplate = defaultHeaderRowTemplate;
+		}
+		if (grid.options.headerRowTemplate) {
+			$header.find('thead').append($compile(grid.options.headerRowTemplate)(scope));
+		} else {
+			$http.get(grid.options.headerRowTemplateUrl, { cache: $templateCache }).success(function(html) {
+				$header.find('thead').append($compile(html)(scope));
+			});
+		}
 	};
 
 	return {
@@ -135,16 +194,8 @@ angular.module('mf-grid')
 				optsGetter = $parse(optionsName);
 
 			grid.options = optsGetter(scope) || {};
-			linker(scope, $el, attrs, grid);
 
-//			var templateUrl = grid.options.templateUrl || 'views/grid-table.html';
-//			$http
-//				.get(templateUrl, { cache: $templateCache })
-//				.success(function(html) {
-//					var $newEl = $compile(html)(scope);
-//					$el.replaceWith($newEl);
-//					linker(scope, $newEl, attrs, grid);
-//				});
+			linker(scope, $el, attrs, grid);
 		}
 	};
 }])
@@ -153,25 +204,15 @@ angular.module('mf-grid')
 
 	return {
 		restrict: 'A',
-		scope: true,
-		replace: true,
 		require: '^mfGrid',
 		compile: function compile(tElement, tAttrs, transclude) {
 			return {
 				post: function(scope, $el, attrs, grid) {
-					$el.height(grid.options.rowHeight);
+					$el.find('.grid-column').height(grid.options.rowHeight);
 
-					scope.$watch('grid.rowsBefore', function(rowBefore){
-						scope.gridIndex = rowBefore + scope.$index;
+					scope.$watch('grid.itemsBefore', function(itemsBefore){
+						scope.itemIndex = itemsBefore + scope.$index;
 					});
-
-					if (grid.options.rowTemplate) {
-						$el.append($compile(grid.options.rowTemplate)(scope));
-					} else {
-						$http.get(grid.options.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
-							$el.append($compile(html)(scope));
-						});
-					}
 				}
 			};
 		}

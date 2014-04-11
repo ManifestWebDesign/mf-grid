@@ -1,20 +1,11 @@
 <div class="grid-container" ng-show="grid.data && grid.data.length">
-	<table class="grid-header">
-		<tr class="row">
-			<th ng-if="grid.options.showSelectionCheckbox" ng-style="{ width: grid.getCheckboxColumnWidth() }" resizable="false" class="column">
-				<input ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all">
-			</th>
-			<th ng-repeat="column in grid.enabledColumns" ng-style="grid.getColumnStyle(column)" ng-bind="column.displayName" ng-click="columnClick(column, $index)" class="column">
-				<span ng-show="search && search.order_by === column.orderBy" style="margin-left: 10px" class="icon-chevron-{{ search.dir ? 'down' : 'up' }}"></span>
-			</th>
-		</tr>
+	<table class="table table-bordered grid-header">
+		<thead></thead>
 	</table>
 	<div class="grid-viewport">
-		<div class="grid-viewport-content-wrapper" ng-style="{ height: grid.totalHeight }">
-			<table ng-class="{ 'table-hover' : grid.options.rowClick }" ng-style="{ top: grid.pixelsBefore }">
-				<tbody class="grid-body">
-					<tr mf-grid-row="" ng-repeat="row in grid.visibleData" class="row"></tr>
-				</tbody>
+		<div class="grid-viewport-content" ng-style="{ height: grid.totalHeight }">
+			<table class="table table-bordered" ng-class="{ 'table-hover' : grid.options.rowClick }" ng-style="{ top : grid.pixelsBefore }">
+				<tbody class="grid-body"></tbody>
 			</table>
 		</div>
 	</div>
