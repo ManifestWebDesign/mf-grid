@@ -4,11 +4,11 @@
 
 .grid-container table {
 	table-layout: fixed;
-	width: 100%;
 	border-collapse: collapse;
 	border-spacing: 0;
 	background: #fff;
 	margin: 0;
+	width: auto;
 }
 
 .grid-viewport {
