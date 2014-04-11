@@ -212,7 +212,7 @@ MfGridCtrl.prototype = {
 			return;
 		}
 
-		var bleed = 3;
+		var bleed = 5;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
 			itemsBefore = Math.floor(scrollTop / rowHeight),

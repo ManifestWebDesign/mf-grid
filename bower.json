@@ -1,7 +1,8 @@
 {
 	"name": "mf-grid",
 	"version": "0.0.1",
-	"main": "app/scripts/grid.js",
+	"appPath": "src",
+	"main": "src/scripts/grid.js",
 	"dependencies": {
 		"angular": "~1.2.0",
 		"jquery": "~1.9.1"

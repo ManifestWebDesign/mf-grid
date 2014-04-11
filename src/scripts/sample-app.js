@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('app')
+angular.module('app', [
+	'mf-grid'
+])
 
 .controller('MainCtrl', function($scope) {
 
@@ -35,3 +37,5 @@ angular.module('app')
 	}
 
 });
+
+;
