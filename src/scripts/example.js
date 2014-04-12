@@ -40,6 +40,7 @@ angular.module('app', [
 		enableSorting: true,
 		headerRowHeight: 50,
 		virtualizationThreshold: 100,
+		virtualizationBleed: 10,
 		selectionChanged: function(selectedItems) {
 			console.log('selectionChanged(selectedItems)', selectedItems);
 		},

@@ -110,6 +110,7 @@ MfGridCtrl.prototype = {
 	$parse: null,
 	visibleItems: null,
 	virtualizationThreshold: 50,
+	virtualizationBleed: 5,
 	itemsBefore: 0,
 	pixelsBefore: 0,
 	height: 0,
@@ -234,7 +235,7 @@ MfGridCtrl.prototype = {
 			return;
 		}
 
-		var bleed = 3;
+		var bleed = this.virtualizationBleed;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
 			itemsBefore = ~~(scrollTop / rowHeight),

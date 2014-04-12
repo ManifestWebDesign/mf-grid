@@ -58,10 +58,11 @@ angular.module('mf-grid')
 .directive('mfGrid', ['$http', '$templateCache', '$compile', '$timeout', '$window', function($http, $templateCache, $compile, $timeout, $window) {
 
 	function linker(scope, $el, attrs, grid) {
-		var $viewPort = $el.find('.grid-viewport'),
-			$header = $el.find('.grid-header'),
-			$body = $el.find('.grid-body'),
-			viewPortElement = $viewPort.get(0);
+		var $header = $el.find('.grid-header'),
+			$viewPort = $el.find('.grid-viewport'),
+			viewPortElement = $viewPort.get(0),
+			$body = $viewPort.find('.grid-body'),
+			$table = $viewPort.find('table');
 
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
@@ -152,9 +153,22 @@ angular.module('mf-grid')
 			}
 		};
 
+		var prevScrollTop = 0;
 		function updateScroll() {
-			grid.setScrollTop(viewPortElement.scrollTop);
 			$header[0].scrollLeft = viewPortElement.scrollLeft;
+
+			var newScrollTop = viewPortElement.scrollTop,
+				bleed = ~~(grid.virtualizationBleed / 2),
+				min = prevScrollTop - grid.rowHeight * bleed,
+				max = prevScrollTop + grid.rowHeight * bleed;
+
+			if (newScrollTop >= min && newScrollTop <= max) {
+				return;
+			}
+			prevScrollTop = newScrollTop;
+
+			grid.setScrollTop(newScrollTop);
+			$table[0].style.top = grid.pixelsBefore + 'px';
 
 			scope.$digest();
 		}
