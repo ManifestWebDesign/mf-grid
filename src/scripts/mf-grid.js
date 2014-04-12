@@ -158,7 +158,7 @@ angular.module('mf-grid')
 			$header[0].scrollLeft = viewPortElement.scrollLeft;
 
 			var newScrollTop = viewPortElement.scrollTop,
-				bleed = ~~(grid.virtualizationBleed / 2),
+				bleed = Math.max(1, ~~(grid.virtualizationBleed / 2)),
 				min = prevScrollTop - grid.rowHeight * bleed,
 				max = prevScrollTop + grid.rowHeight * bleed;
 
