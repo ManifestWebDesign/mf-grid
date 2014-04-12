@@ -16,7 +16,7 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + '</th>'
 + '</tr>';
 
-var defaultRowTemplate = '<tr mf-grid-row ng-repeat="row in grid.visibleData" class="grid-row">'
+var defaultRowTemplate = '<tr mf-grid-row ng-repeat="row in grid.visibleItems" class="grid-row">'
 + '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
 //+ '<span ng-show="grid.isItemSelected(row.item)" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
 + '<input ng-checked="grid.isItemSelected(row.item)" type="checkbox" />'
@@ -55,7 +55,7 @@ function getScrollBarWidth() {
 
 angular.module('mf-grid')
 
-.directive('mfGrid', ['$parse', '$http', '$templateCache', '$compile', '$timeout', '$window', function($parse, $http, $templateCache, $compile, $timeout, $window) {
+.directive('mfGrid', ['$http', '$templateCache', '$compile', '$timeout', '$window', function($http, $templateCache, $compile, $timeout, $window) {
 
 	function linker(scope, $el, attrs, grid) {
 		var $viewPort = $el.find('.grid-viewport'),
@@ -100,6 +100,10 @@ angular.module('mf-grid')
 
 		$win.on('resize', windowResize);
 		scope.$on('$destroy', function() {
+			grid._data = null;
+			grid.columnDefs = null;
+			grid.selectedItems = null;
+			grid.visibleItems = null;
             $win.off('resize', windowResize);
         });
 

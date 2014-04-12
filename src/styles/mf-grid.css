@@ -19,6 +19,7 @@
 	bottom: 0;
 	left: 0;
 	right: 0;
+	background: #efefef;
 }
 
 .grid-viewport-content {
@@ -27,6 +28,7 @@
 
 .grid-viewport-content table {
 	position: absolute;
+	background: #fff;
 }
 
 .grid-row {
@@ -39,10 +41,6 @@
 	right: 0;
 	left: 0;
 	overflow: hidden;
-}
-
-.grid-body {
-	clear: both;
 }
 
 .grid-container .grid-column {

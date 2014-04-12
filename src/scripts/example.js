@@ -39,6 +39,7 @@ angular.module('app', [
 		rowHeight: 35,
 		enableSorting: true,
 		headerRowHeight: 50,
+		virtualizationThreshold: 100,
 		selectionChanged: function(selectedItems) {
 			console.log('selectionChanged(selectedItems)', selectedItems);
 		},
@@ -57,10 +58,11 @@ angular.module('app', [
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Name', field: 'name', width: '100px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Time', field: 'time', width: '200px', cellFilter: "date : 'd/M H:m:s.sss'" }
+			{ displayName: 'Date Formatted', field: 'time', width: '150px', cellFilter: "date : 'd/M H:m:s.sss'" },
+			{ displayName: 'Date Raw', field: 'time', width: '200px' }
 		]
 	};
 

@@ -12,9 +12,11 @@ var MfGridCtrl = function MfGridCtrl($parse, $interpolate) {
 	this._data = [];
 	this.enabledColumns = [];
 	this.selectedItems = [];
-	this.visibleData = [];
+	this.visibleItems = [];
 	this.columnDefs = [];
 };
+
+var variableRegEx = /^(?!(?:do|if|in|for|let|new|try|var|case|else|enum|eval|false|null|this|true|void|with|break|catch|class|const|super|throw|while|yield|delete|export|import|public|return|static|switch|typeof|default|extends|finally|package|private|continue|debugger|function|arguments|interface|protected|implements|instanceof)$)[$A-Z\_a-z]*$/;
 
 var sortService = {};
  // this takes an piece of data from the cell and tries to determine its type and what sorting
@@ -106,9 +108,9 @@ MfGridCtrl.prototype = {
 	selectedItems: null,
 	allItemsSelected: false,
 	$parse: null,
-	visibleData: null,
+	visibleItems: null,
+	virtualizationThreshold: 50,
 	itemsBefore: 0,
-	itemsAfter: 0,
 	pixelsBefore: 0,
 	height: 0,
 	viewportHeight: 0,
@@ -124,17 +126,34 @@ MfGridCtrl.prototype = {
 	headerColumnClick: null,
 	rowClick: null,
 	getColumnValueRaw: function (item, column, scope) {
-		if (typeof column.valueRaw === 'string') {
-			return item[column.valueRaw];
+		if (column.isItemKey === true) {
+			return item[column.field];
 		}
-		return column.valueRaw(scope || {}, item);
+		if (item.hasOwnProperty(column.field) || typeof item[column.field] !== 'undefined') {
+			column.isItemKey = true;
+			return item[column.field];
+		}
+		if (scope) {
+			if (column.isScopeKey === true) {
+				return scope[column.field];
+			}
+			if (scope.hasOwnProperty(column.field) || typeof scope[column.field] !== 'undefined') {
+				column.isScopeKey = true;
+				return scope[column.field];
+			}
+		} else {
+			scope = {};
+		}
+
+		return column.valueRaw(scope, item);
 	},
 	getColumnValue: function (item, column, scope) {
-		if (typeof column.valueFiltered === 'undefined') {
+		if (
+			column.isItemKey === true
+			|| column.isScopeKey === true
+			|| typeof column.valueFiltered !== 'function'
+		) {
 			return this.getColumnValueRaw(item, column, scope);
-		}
-		if (typeof column.valueFiltered === 'string') {
-			return item[column.valueFiltered];
 		}
 		return column.valueFiltered(item);
 	},
@@ -194,12 +213,12 @@ MfGridCtrl.prototype = {
 	},
 	setVisibleItems: function(visibleItems) {
 		for (var x = 0, l = visibleItems.length; x < l; ++x) {
-			if (typeof this.visibleData[x] === 'undefined') {
-				this.visibleData[x] = {};
+			if (typeof this.visibleItems[x] === 'undefined') {
+				this.visibleItems[x] = {};
 			}
-			this.visibleData[x].item = visibleItems[x];
+			this.visibleItems[x].item = visibleItems[x];
 		}
-		this.visibleData.length = visibleItems.length;
+		this.visibleItems.length = visibleItems.length;
 	},
 	updateVisibleItems: function() {
 		var rowHeight = this.rowHeight,
@@ -208,13 +227,14 @@ MfGridCtrl.prototype = {
 			maxVisibleItems = Math.ceil(height / rowHeight);
 
 		this.totalHeight = totalItems * rowHeight;
+		this.itemsBefore = this.pixelsBefore = 0;
 
-		if (totalItems <= maxVisibleItems) {
+		if (totalItems <= maxVisibleItems || totalItems <= this.virtualizationThreshold) {
 			this.setVisibleItems(this._data);
 			return;
 		}
 
-		var bleed = 5;
+		var bleed = 3;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
 			itemsBefore = ~~(scrollTop / rowHeight),
@@ -224,8 +244,6 @@ MfGridCtrl.prototype = {
 		this.pixelsBefore = this.itemsBefore * rowHeight;
 
 		var end = Math.min(this.itemsBefore + maxVisibleItems + (bleed + adjustment), totalItems);
-
-		this.itemsAfter = totalItems - end;
 
 		this.setVisibleItems(this._data.slice(this.itemsBefore, end));
 	},
@@ -267,19 +285,26 @@ MfGridCtrl.prototype = {
 				field: columnDef,
 				orderBy: columnDef,
 				valueFiltered: columnDef,
-				valueRaw: columnDef
+				valueRaw: columnDef,
+				isItemKey: true
 			};
-		} else {
+		}
+
+		if (columnDef.isItemKey !== true) {
+			columnDef.isItemKey = false;
+
 			if (
 				typeof columnDef.cellFilter !== 'undefined'
 				&& columnDef.cellFilter.length > 0
-				&& typeof columnDef.valueFiltered === 'undefined'
 			) {
-				columnDef.valueFiltered = this.$interpolate('{{ ' + columnDef.field + ' | ' + columnDef.cellFilter + ' }}');
+				if (typeof columnDef.valueFiltered === 'undefined') {
+					columnDef.valueFiltered = this.$interpolate('{{ ' + columnDef.field + ' | ' + columnDef.cellFilter + ' }}');
+				}
 			}
 
 			if (
-				typeof columnDef.valueRaw === 'undefined'
+				!columnDef.isItemKey
+				&& typeof columnDef.valueRaw === 'undefined'
 			) {
 				columnDef.valueRaw = this.$parse(columnDef.field);
 			}
