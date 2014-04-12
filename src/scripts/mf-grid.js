@@ -1,19 +1,12 @@
 (function(){
 
 var defaultHeaderRowTemplate = '<tr class="grid-row">'
-+ '<th'
-+ ' ng-if="grid.showSelectionCheckbox"'
-+ ' ng-style="{ width: grid.getCheckboxColumnWidth() }" resizable="false"'
-+ ' class="grid-column">'
-+ '<input'
-+ ' ng-checked="grid.allItemsSelected"'
-+ ' title="Select All"'
-+ ' type="checkbox"'
-+ ' class="check-all" />'
++ '<th ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
++ '<input ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
 + '</th>'
 + '<th'
 + ' ng-repeat="column in grid.enabledColumns"'
-+ ' ng-style="grid.getColumnStyle(column)"'
++ ' ng-style="{ width: column.width }"'
 + ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
 + ' ng-click="headerColumnClick(column, $index)"'
 + ' class="grid-column">{{ column.displayName }}'
@@ -23,25 +16,16 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + '</th>'
 + '</tr>';
 
-var defaultRowTemplate = '<tr mf-grid-row'
-+ ' ng-repeat="row in grid.visibleData"'
-+ ' ng-click="rowClick(row.item, itemIndex)"'
-+ ' class="grid-row">'
-+ '<td'
-+ ' ng-if="grid.showSelectionCheckbox"'
-+ ' ng-style="{ width: grid.getCheckboxColumnWidth() }"'
-+ ' class="grid-column">'
-+ '<input'
-+ ' name="{{ grid.selectionCheckboxInputName }}"'
-+ ' value="{{ row.item[grid.selectionCheckboxInputValue] }}"'
-+ ' ng-checked="grid.isItemSelected(row.item)"'
-+ ' type="checkbox" />'
+var defaultRowTemplate = '<tr mf-grid-row ng-repeat="row in grid.visibleData" class="grid-row">'
++ '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
+//+ '<span ng-show="grid.isItemSelected(row.item)" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
++ '<input ng-checked="grid.isItemSelected(row.item)" type="checkbox" />'
 + '</td>'
 + '<td'
 + ' ng-repeat="column in grid.enabledColumns"'
-+ ' ng-style="grid.getColumnStyle(column)"'
-+ ' ng-bind="grid.getColumnValue(row.item, column, $parent)"'
-+ ' class="grid-column"></td></tr>';
++ ' ng-style="{ width: column.width }"'
++ ' class="grid-column">{{ grid.getColumnValue(row.item, column, $parent) }}</td>'
++ '</tr>';
 
 function getScrollBarWidth() {
     var inner = document.createElement('p');
@@ -77,7 +61,7 @@ angular.module('mf-grid')
 		var $viewPort = $el.find('.grid-viewport'),
 			$header = $el.find('.grid-header'),
 			$body = $el.find('.grid-body'),
-			viewPortElement = $el.find('.grid-viewport').get(0);
+			viewPortElement = $viewPort.get(0);
 
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
@@ -111,7 +95,7 @@ angular.module('mf-grid')
 		var $win = angular.element($window);
 		function windowResize(){
 			updateHeight();
-			scope.$apply();
+			scope.$digest();
 		}
 
 		$win.on('resize', windowResize);
@@ -166,11 +150,12 @@ angular.module('mf-grid')
 
 		function updateScroll() {
 			grid.setScrollTop(viewPortElement.scrollTop);
-			$header.scrollLeft($el.find('.grid-viewport').scrollLeft());
-			scope.$apply();
+			$header[0].scrollLeft = viewPortElement.scrollLeft;
+
+			scope.$digest();
 		}
 
-		$el.find('.grid-viewport').on('scroll', updateScroll);
+		$viewPort[0].addEventListener('scroll', updateScroll);
 
 		$header.on('click', 'input.check-all', function() {
 			grid.selectAll(this.checked);
@@ -178,21 +163,31 @@ angular.module('mf-grid')
 		});
 
 		function getItem($checkbox) {
-			return $checkbox.closest('.grid-row').scope().row.item;
+			var scope = $checkbox.closest('.grid-row').scope();
+			if (!scope) {
+				return;
+			}
+			return scope.row.item;
 		}
 
 		$body.on('click', '.grid-column', function(e) {
-			if ($(e.target).is(':not(.grid-column)')) {
+			if ($(e.target).is('input:checkbox')) {
 				return;
 			}
 
 			var $this = $(this),
-				$checkboxes = $this.find('input:checkbox');
+				item = getItem($this);
 
-			if ($checkboxes.length > 0) {
-				e.stopImmediatePropagation();
-				grid.selectItem(getItem($checkboxes), !$checkboxes[0].checked);
+			if (!item) {
+				return;
 			}
+			if ($this.is('.grid-checkbox-column')) {
+				e.stopImmediatePropagation();
+				grid.selectItem(item, !grid.isItemSelected(item));
+			} else {
+				scope.rowClick(item, grid._data.indexOf(item));
+			}
+
 			scope.$apply();
 		});
 

@@ -180,12 +180,6 @@ MfGridCtrl.prototype = {
 	isColumnSortable: function(column) {
 		return this.enableSorting && column.sortable;
 	},
-	getCheckboxColumnWidth: function() {
-		return '30px';
-	},
-	getColumnStyle: function (column) {
-		return { width: column.width };
-	},
 	setViewportHeight: function(height) {
 		this.viewportHeight = height;
 		this.updateVisibleItems();
@@ -216,7 +210,6 @@ MfGridCtrl.prototype = {
 		this.totalHeight = totalItems * rowHeight;
 
 		if (totalItems <= maxVisibleItems) {
-			this.pixelsAfter = this.itemsBefore = this.pixelsBefore = this.itemsAfter = 0;
 			this.setVisibleItems(this._data);
 			return;
 		}
@@ -224,7 +217,7 @@ MfGridCtrl.prototype = {
 		var bleed = 5;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
-			itemsBefore = Math.floor(scrollTop / rowHeight),
+			itemsBefore = ~~(scrollTop / rowHeight),
 			adjustment = Math.min(bleed, itemsBefore);
 
 		this.itemsBefore = itemsBefore - adjustment;
@@ -233,7 +226,6 @@ MfGridCtrl.prototype = {
 		var end = Math.min(this.itemsBefore + maxVisibleItems + (bleed + adjustment), totalItems);
 
 		this.itemsAfter = totalItems - end;
-		this.pixelsAfter = this.itemsAfter * rowHeight;
 
 		this.setVisibleItems(this._data.slice(this.itemsBefore, end));
 	},

@@ -11,10 +11,20 @@ angular.module('app', [
 	$scope.data.push({});
 	var now = new Date().getTime();
 
+	var names = [
+		'Dan',
+		'David',
+		'Corie',
+		'Cole',
+		'Nathan',
+		'Brandon',
+		'Jaime'
+	];
 	for (var x = 0; x < 10000; ++x) {
 		$scope.data.push({
 			foo: 'bar' + x,
 			bar: x,
+			name: names[x % names.length],
 			time: new Date(now + x)
 		});
 	}
@@ -41,7 +51,14 @@ angular.module('app', [
 		},
 		columnDefs: [
 			{ displayName: 'Index', field: 'itemIndex', width: '50px' },
-			{ displayName: 'Foo', field: 'foo', width: '50px' },
+			{ displayName: 'Foo', field: 'foo', width: '75px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Name', field: 'name', width: '100px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
+			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Time', field: 'time', width: '200px', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]

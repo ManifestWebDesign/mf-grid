@@ -53,6 +53,10 @@
 	white-space: nowrap;
 }
 
+.grid-checkbox-column {
+	width: 30px;
+}
+
 .grid-header .grid-column-sortable {
 
 }
