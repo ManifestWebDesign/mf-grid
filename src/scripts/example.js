@@ -32,8 +32,8 @@ angular.module('app', [
 	$scope.gridOpts = {
 		data: 'data',
 		selectedItems: [
-			$scope.data[0],
-			$scope.data[1]
+			$scope.data[2],
+			$scope.data[5]
 		],
 		showSelectionCheckbox: true,
 		rowHeight: 35,
@@ -52,17 +52,11 @@ angular.module('app', [
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
+			{ displayName: 'Index', field: 'itemIndex', width: '55px' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
-			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Name', field: 'name', width: '100px' },
-			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Bar', field: 'bar', width: '50px' },
-			{ displayName: 'Date Formatted', field: 'time', width: '150px', cellFilter: "date : 'd/M H:m:s.sss'" },
-			{ displayName: 'Date Raw', field: 'time', width: '200px' }
+			{ displayName: 'Date Formatted', field: 'time', width: '150px', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]
 	};
 

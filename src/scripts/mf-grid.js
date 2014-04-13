@@ -1,16 +1,14 @@
 (function(){
 
 var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
-+ '<div class="grid-header-viewport" ng-style="{ marginRight : scrollbarWidth }">'
-+ '<table class="grid-header-content-wrapper table table-bordered">'
++ '<div class="grid-header-viewport">'
++ '<table class="grid-header-content-wrapper table">'
 + '<thead class="grid-header-content"></thead>'
 + '</table>'
 + '</div>'
 + '<div class="grid-body-viewport">'
-+ '<div class="grid-body-viewport-content" ng-style="{ height: grid.totalHeight }">'
-+ '<table'
-+ ' class="grid-body-content-wrapper table table-bordered"'
-+ ' ng-class="{ \'table-hover\' : grid.rowClick }">'
++ '<div class="grid-body-viewport-content">'
++ '<table class="grid-body-content-wrapper table">'
 + '<tbody class="grid-body-content"></tbody>'
 + '</table>'
 + '</div>'
@@ -33,7 +31,11 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + '</th>'
 + '</tr>';
 
-var defaultRowTemplate = '<tr mf-grid-row ng-repeat="row in grid.visibleItems" class="grid-row">'
+var defaultRowTemplate = '<tr'
++ ' mf-grid-row'
++ ' ng-repeat="row in grid.visibleItems"'
++ ' ng-class="{\'grid-row-selected\': grid.isItemSelected(row.item)}"'
++ ' class="grid-row">'
 + '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
 //+ '<span ng-show="grid.isItemSelected(row.item)" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
 + '<input ng-checked="grid.isItemSelected(row.item)" type="checkbox" />'
@@ -74,12 +76,18 @@ angular.module('mf-grid')
 .directive('mfGrid', ['$http', '$templateCache', '$compile', '$timeout', '$window', function($http, $templateCache, $compile, $timeout, $window) {
 
 	function linker(scope, $el, attrs, grid) {
+
 		var $headerViewport = $el.find('.grid-header-viewport'),
 			$headerContent = $headerViewport.find('.grid-header-content'),
 			$bodyViewport = $el.find('.grid-body-viewport'),
-			bodyViewportElement = $bodyViewport.get(0),
+			bodyViewportElement = $bodyViewport[0],
+			$bodyViewportContent = $el.find('.grid-body-viewport-content'),
 			$bodyContentWrapper = $bodyViewport.find('.grid-body-content-wrapper'),
 			$bodyContent = $bodyViewport.find('.grid-body-content');
+
+		if (!bodyViewportElement) {
+			throw new Error('.grid-body-viewport not found.');
+		}
 
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
@@ -134,6 +142,20 @@ angular.module('mf-grid')
 			});
 		});
 
+		scope.$watch('grid.scrollbarWidth', function(width){
+			if (typeof width === 'undefined' || width === null) {
+				return;
+			}
+			$headerViewport.css('margin-right', width + 'px');
+		});
+
+		scope.$watch('grid.totalHeight', function(height){
+			if (typeof height === 'undefined' || height === null) {
+				return;
+			}
+			$bodyViewportContent.css('height', height + 'px');
+		});
+
 		scope.$watch('grid.headerRowHeight', function(height){
 			height = parseInt(height, 10) || 0;
 			var $headerRow = $headerViewport.find('.grid-row');
@@ -184,7 +206,7 @@ angular.module('mf-grid')
 			scope.$digest();
 		}
 
-		$bodyViewport[0].addEventListener('scroll', onScroll);
+		bodyViewportElement.addEventListener('scroll', onScroll);
 
 		function getItem($checkbox) {
 			var scope = $checkbox.closest('.grid-row').scope();
@@ -200,11 +222,11 @@ angular.module('mf-grid')
 		});
 
 		$bodyContent.on('click', '.grid-column', function(e) {
-			if ($(e.target).is('input:checkbox')) {
+			if (angular.element(e.target).is('input:checkbox')) {
 				return;
 			}
 
-			var $this = $(this),
+			var $this = angular.element(this),
 				item = getItem($this);
 
 			if (!item) {
@@ -279,7 +301,6 @@ angular.module('mf-grid')
 		require: '^mfGrid',
 		link: function(scope, $el, attrs, grid) {
 			$el[0].style.height = grid.rowHeight + 'px';
-
 			scope.$watch('grid.itemsBefore', function(){
 				scope.itemIndex = grid.itemsBefore + scope.$index;
 //				$el[0].style.top = top + 'px';

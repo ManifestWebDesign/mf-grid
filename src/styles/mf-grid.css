@@ -42,6 +42,10 @@ table.grid-body-content-wrapper {
 	background: #fff;
 }
 
+.grid-container .grid-row-selected .grid-column {
+	background: #ddd;
+}
+
 .grid-container .grid-row, .grid-container .grid-column {
 	box-sizing: border-box;
 	overflow: hidden;
