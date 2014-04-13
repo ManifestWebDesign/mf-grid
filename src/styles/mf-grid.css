@@ -24,6 +24,10 @@
 	border-bottom: 1px solid #ddd;
 }
 
+.grid-header .grid-column {
+	border-bottom: none;
+}
+
 .grid-body {
 	overflow: auto;
 	position: absolute;
@@ -59,7 +63,7 @@ table.grid-body-content-wrapper {
 	width: 40px;
 }
 
-.grid-container .grid-row-selected .grid-column {
+.grid-body .grid-row-selected .grid-column {
 	background: #ffc;
 }
 
@@ -68,6 +72,3 @@ table.grid-body-content-wrapper {
 	cursor: pointer;
 }
 
-.grid-header .grid-column {
-	border-bottom: none;
-}

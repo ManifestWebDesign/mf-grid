@@ -53,11 +53,11 @@ angular.module('app', [
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
-			{ displayName: 'Index', field: 'itemIndex', width: '55px' },
+			{ displayName: 'Index', field: 'itemIndex', width: '75px' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
-			{ displayName: 'Date Formatted', field: 'time', width: '150px', cellFilter: "date : 'd/M H:m:s.sss'" }
+			{ displayName: 'Date Formatted', field: 'time', width: '200px', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]
 	};
 
