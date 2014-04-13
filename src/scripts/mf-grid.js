@@ -202,33 +202,41 @@ MfGridCtrl.prototype = {
 	_oldLength: 0,
 	headerColumnClick: null,
 	rowClick: null,
-	getColumnValueRaw: function (item, column, scope) {
-		if (column.isItemKey === true) {
-			return item[column.field];
-		}
-		if (item.hasOwnProperty(column.field) || typeof item[column.field] !== 'undefined') {
+	isItemKey: function(item, column) {
+		if (
+			column.isItemKey
+			|| item.hasOwnProperty(column.field)
+			|| typeof item[column.field] !== 'undefined'
+		) {
 			column.isItemKey = true;
+		}
+		return column.isItemKey || false;
+	},
+	isScopeKey: function(scope, column) {
+		if (
+			column.isScopeKey
+			|| scope.hasOwnProperty(column.field)
+			|| typeof scope[column.field] !== 'undefined'
+		) {
+			column.isScopeKey = true;
+		}
+		return column.isScopeKey || false;
+	},
+	getColumnValueRaw: function (item, column, scope) {
+		if (this.isItemKey(item, column)) {
 			return item[column.field];
 		}
-		if (scope) {
-			if (column.isScopeKey === true) {
-				return scope[column.field];
-			}
-			if (scope.hasOwnProperty(column.field) || typeof scope[column.field] !== 'undefined') {
-				column.isScopeKey = true;
-				return scope[column.field];
-			}
-		} else {
-			scope = {};
+		if (this.isScopeKey(scope, column)) {
+			return scope[column.field];
 		}
 
-		return column.valueRaw(scope, item);
+		return column.valueRaw(scope || {}, item);
 	},
 	getColumnValue: function (item, column, scope) {
 		if (
-			column.isItemKey === true
-			|| column.isScopeKey === true
-			|| typeof column.valueFiltered !== 'function'
+			(this.isItemKey(item, column)
+			|| this.isScopeKey(scope, column))
+			&& typeof column.valueFiltered !== 'function'
 		) {
 			return this.getColumnValueRaw(item, column, scope);
 		}
