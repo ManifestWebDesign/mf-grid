@@ -107,6 +107,7 @@ MfGridCtrl.prototype = {
 	showSelectionCheckbox: true,
 	enabledColumns: null,
 	selectedItems: null,
+	multiSelect: true,
 	allItemsSelected: false,
 	$parse: null,
 	visibleItems: null,
@@ -257,9 +258,21 @@ MfGridCtrl.prototype = {
 		return this.selectedItems.indexOf(item) !== -1;
 	},
 	updateCheckAll: function(){
+		if (this.multiSelect === false && this.selectedItems.length > 1) {
+			var last = this.selectedItems[this.selectedItems.length - 1];
+			this.selectedItems.length = 1;
+			this.selectedItems[0] = last;
+		}
 		this.allItemsSelected = this._data.length === this.selectedItems.length;
 	},
 	selectItem: function(item, selected) {
+		if (this.multiSelect === false) {
+			this.selectedItems.length = 0;
+			this.selectedItems.push(item);
+			this.updateCheckAll();
+			return;
+		}
+
 		var index = this.selectedItems.indexOf(item),
 			isSelected = index !== -1;
 

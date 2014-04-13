@@ -1,6 +1,9 @@
 .grid-container {
 	position: relative;
 	background: #fff;
+	overflow: hidden;
+	min-height: 200px;
+	min-width: 100px;
 }
 
 .grid-container table {
@@ -12,22 +15,22 @@
 	max-width: none;
 }
 
-.grid-header-viewport {
+.grid-header {
 	position: absolute;
 	top: 0;
 	right: 0;
 	left: 0;
 	overflow: hidden;
+	border-bottom: 1px solid #ddd;
 }
 
-.grid-body-viewport {
+.grid-body {
 	overflow: auto;
 	position: absolute;
-	top: 30px;
+	top: 0;
 	bottom: 0;
 	left: 0;
 	right: 0;
-	background: #efefef;
 }
 
 .grid-body-viewport-content {
@@ -38,38 +41,33 @@ table.grid-body-content-wrapper {
 	position: absolute;
 }
 
-.grid-container .grid-row {
-	background: #fff;
-}
-
-.grid-container .grid-row-selected .grid-column {
-	background: #ddd;
-}
-
 .grid-container .grid-row, .grid-container .grid-column {
 	box-sizing: border-box;
 	overflow: hidden;
-	/*display: block;*/
 	white-space: nowrap;
-}
-
-.grid-body-viewport div.grid-row {
-	position: absolute;
-	display: block;
-	clear: both;
-	border-bottom: 1px solid #aaa;
-}
-
-.grid-container div.grid-column {
-	display: inline-block;
-	height: 100%;
 }
 
 .grid-container .grid-column {
 	text-overflow: ellipsis;
 	text-align: left;
+	border-top: 1px solid #ddd;
+	padding-left: 10px;
+	padding-right: 10px;
 }
 
 .grid-checkbox-column {
-	width: 30px;
+	width: 40px;
+}
+
+.grid-container .grid-row-selected .grid-column {
+	background: #ffc;
+}
+
+.grid-body .grid-row:hover .grid-column {
+	background: #eee;
+	cursor: pointer;
+}
+
+.grid-header .grid-column {
+	border-bottom: none;
 }

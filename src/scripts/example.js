@@ -37,6 +37,7 @@ angular.module('app', [
 		],
 		showSelectionCheckbox: true,
 		rowHeight: 35,
+		multiSelect: true,
 		enableSorting: true,
 		headerRowHeight: 40,
 		virtualizationThreshold: 50,

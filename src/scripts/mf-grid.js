@@ -1,12 +1,12 @@
 (function(){
 
 var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
-+ '<div class="grid-header-viewport">'
++ '<div class="grid-header">'
 + '<table class="grid-header-content-wrapper table">'
 + '<thead class="grid-header-content"></thead>'
 + '</table>'
 + '</div>'
-+ '<div class="grid-body-viewport">'
++ '<div class="grid-body">'
 + '<div class="grid-body-viewport-content">'
 + '<table class="grid-body-content-wrapper table">'
 + '<tbody class="grid-body-content"></tbody>'
@@ -17,7 +17,7 @@ var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._dat
 
 var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + '<th ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
-+ '<input ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
++ '<input ng-if="grid.multiSelect" ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
 + '</th>'
 + '<th'
 + ' ng-repeat="column in grid.enabledColumns"'
@@ -77,16 +77,16 @@ angular.module('mf-grid')
 
 	function linker(scope, $el, attrs, grid) {
 
-		var $headerViewport = $el.find('.grid-header-viewport'),
+		var $headerViewport = $el.find('.grid-header'),
 			$headerContent = $headerViewport.find('.grid-header-content'),
-			$bodyViewport = $el.find('.grid-body-viewport'),
+			$bodyViewport = $el.find('.grid-body'),
 			bodyViewportElement = $bodyViewport[0],
 			$bodyViewportContent = $el.find('.grid-body-viewport-content'),
 			$bodyContentWrapper = $bodyViewport.find('.grid-body-content-wrapper'),
 			$bodyContent = $bodyViewport.find('.grid-body-content');
 
 		if (!bodyViewportElement) {
-			throw new Error('.grid-body-viewport not found.');
+			throw new Error('.grid-body not found.');
 		}
 
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
@@ -106,6 +106,10 @@ angular.module('mf-grid')
 			if (grid.selectionChanged) {
 				grid.selectionChanged(grid.selectedItems);
 			}
+		});
+
+		scope.$watch('grid.multiSelect', function(){
+			grid.updateCheckAll();
 		});
 
 		function updateHeight() {
