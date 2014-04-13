@@ -20,7 +20,7 @@ angular.module('app', [
 		'Brandon',
 		'Jaime'
 	];
-	for (var x = 0; x < 10000; ++x) {
+	for (var x = 0; x < 200; ++x) {
 		$scope.data.push({
 			foo: 'bar' + x,
 			bar: x,
@@ -38,9 +38,9 @@ angular.module('app', [
 		showSelectionCheckbox: true,
 		rowHeight: 35,
 		enableSorting: true,
-		headerRowHeight: 50,
-		virtualizationThreshold: 100,
-		virtualizationBleed: 10,
+		headerRowHeight: 40,
+		virtualizationThreshold: 50,
+		virtualizationOverflow: 5,
 		selectionChanged: function(selectedItems) {
 			console.log('selectionChanged(selectedItems)', selectedItems);
 		},
@@ -52,7 +52,6 @@ angular.module('app', [
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
-			{ displayName: 'Index', field: 'itemIndex', width: '50px' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },

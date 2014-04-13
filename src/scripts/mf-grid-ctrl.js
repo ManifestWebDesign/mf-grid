@@ -104,13 +104,14 @@ var sortService = {};
 MfGridCtrl.prototype = {
 	_data: null,
 	columnDefs: null,
+	showSelectionCheckbox: true,
 	enabledColumns: null,
 	selectedItems: null,
 	allItemsSelected: false,
 	$parse: null,
 	visibleItems: null,
 	virtualizationThreshold: 50,
-	virtualizationBleed: 5,
+	virtualizationOverflow: 3,
 	itemsBefore: 0,
 	pixelsBefore: 0,
 	height: 0,
@@ -204,25 +205,29 @@ MfGridCtrl.prototype = {
 		this.viewportHeight = height;
 		this.updateVisibleItems();
 	},
-	setHeaderRowHeight: function(height) {
-		this.headerRowHeight = height;
-		this.updateVisibleItems();
-	},
 	setScrollTop: function(scrollTop) {
 		this.scrollTop = scrollTop;
 		this.updateVisibleItems();
 	},
-	setVisibleItems: function(visibleItems) {
-		for (var x = 0, l = visibleItems.length; x < l; ++x) {
+	setVisibleItems: function(newVisibleItems) {
+		for (var x = 0, l = newVisibleItems.length; x < l; ++x) {
 			if (typeof this.visibleItems[x] === 'undefined') {
 				this.visibleItems[x] = {};
 			}
-			this.visibleItems[x].item = visibleItems[x];
+//			else {
+//				this.visibleItems[x].data.length = 0;
+//			}
+//			var data = this.visibleItems[x].data;
+//			for (var c = 0, lc = this.enabledColumns.length; c < lc; ++c) {
+//				var column = this.enabledColumns[c];
+//				data.push(this.getColumnValue(newVisibleItems[x], column));
+//			}
+			this.visibleItems[x].item = newVisibleItems[x];
 		}
-		this.visibleItems.length = visibleItems.length;
+		this.visibleItems.length = newVisibleItems.length;
 	},
 	updateVisibleItems: function() {
-		var rowHeight = this.rowHeight,
+		var rowHeight = this.rowHeight + .5,
 			height = this.viewportHeight,
 			totalItems = this._data.length,
 			maxVisibleItems = Math.ceil(height / rowHeight);
@@ -235,7 +240,7 @@ MfGridCtrl.prototype = {
 			return;
 		}
 
-		var bleed = this.virtualizationBleed;
+		var bleed = this.virtualizationOverflow;
 
 		var scrollTop = Math.max(this.scrollTop, 0),
 			itemsBefore = ~~(scrollTop / rowHeight),

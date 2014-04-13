@@ -8,11 +8,19 @@
 	border-collapse: collapse;
 	border-spacing: 0;
 	margin: 0;
-	width: 0px;
+	width: 0;
 	max-width: none;
 }
 
-.grid-viewport {
+.grid-header-viewport {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	overflow: hidden;
+}
+
+.grid-body-viewport {
 	overflow: auto;
 	position: absolute;
 	top: 30px;
@@ -22,39 +30,42 @@
 	background: #efefef;
 }
 
-.grid-viewport-content {
+.grid-body-viewport-content {
 	position: relative;
 }
 
-.grid-viewport-content table {
+table.grid-body-content-wrapper {
 	position: absolute;
+}
+
+.grid-container .grid-row {
 	background: #fff;
 }
 
-.grid-row {
+.grid-container .grid-row, .grid-container .grid-column {
 	box-sizing: border-box;
+	overflow: hidden;
+	/*display: block;*/
+	white-space: nowrap;
 }
 
-.grid-header {
+.grid-body-viewport div.grid-row {
 	position: absolute;
-	top: 0;
-	right: 0;
-	left: 0;
-	overflow: hidden;
+	display: block;
+	clear: both;
+	border-bottom: 1px solid #aaa;
+}
+
+.grid-container div.grid-column {
+	display: inline-block;
+	height: 100%;
 }
 
 .grid-container .grid-column {
-	overflow: hidden;
-	/*text-overflow: ellipsis;*/
-	box-sizing: border-box;
+	text-overflow: ellipsis;
 	text-align: left;
-	white-space: nowrap;
 }
 
 .grid-checkbox-column {
 	width: 30px;
-}
-
-.grid-header .grid-column-sortable {
-
 }
