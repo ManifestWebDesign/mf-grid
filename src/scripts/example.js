@@ -4,7 +4,7 @@ angular.module('app', [
 	'mf-grid'
 ])
 
-.controller('MainCtrl', function($scope) {
+.controller('MainCtrl', ['$scope', function($scope) {
 
 	$scope.data = [];
 
@@ -20,7 +20,7 @@ angular.module('app', [
 		'Brandon',
 		'Jaime'
 	];
-	for (var x = 0; x < 200; ++x) {
+	for (var x = 0; x < 10000; ++x) {
 		$scope.data.push({
 			foo: 'bar' + x,
 			bar: x,
@@ -53,7 +53,7 @@ angular.module('app', [
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
-			{ displayName: 'Index', field: 'itemIndex', width: '75px' },
+			{ displayName: 'Index', field: 'itemIndex', width: '75px', cellClass: 'custom-cell-class' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
 			{ displayName: 'Bar', field: 'bar', width: '50px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
@@ -61,6 +61,6 @@ angular.module('app', [
 		]
 	};
 
-});
+}]);
 
 ;

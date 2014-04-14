@@ -42,7 +42,7 @@ var defaultRowTemplate = '<tr'
 + '</td>'
 + '<td mf-grid-column'
 + ' ng-repeat="column in grid.enabledColumns"'
-+ ' class="grid-column {{ column.cellClass }}">{{ grid.getColumnValue(item, column, $parent) }}</td>'
++ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
 + '</tr>';
 
 function getScrollBarWidth() {
@@ -77,9 +77,8 @@ Array.prototype.remove = Array.prototype.remove || function(from, to) {
 	return this.push.apply(this, rest);
 };
 
-var MfGridCtrl = function MfGridCtrl($parse, $interpolate) {
+var MfGridCtrl = function MfGridCtrl($parse) {
 	this.$parse = $parse;
-	this.$interpolate = $interpolate;
 	this._data = [];
 	this.enabledColumns = [];
 	this.selectedItems = [];
@@ -202,44 +201,7 @@ MfGridCtrl.prototype = {
 	_oldLength: 0,
 	headerColumnClick: null,
 	rowClick: null,
-	isItemKey: function(item, column) {
-		if (
-			column.isItemKey
-			|| item.hasOwnProperty(column.field)
-			|| typeof item[column.field] !== 'undefined'
-		) {
-			column.isItemKey = true;
-		}
-		return column.isItemKey || false;
-	},
-	isScopeKey: function(scope, column) {
-		if (
-			column.isScopeKey
-			|| scope.hasOwnProperty(column.field)
-			|| typeof scope[column.field] !== 'undefined'
-		) {
-			column.isScopeKey = true;
-		}
-		return column.isScopeKey || false;
-	},
-	getColumnValueRaw: function (item, column, scope) {
-		if (this.isItemKey(item, column)) {
-			return item[column.field];
-		}
-		if (this.isScopeKey(scope, column)) {
-			return scope[column.field];
-		}
-
-		return column.valueRaw(scope || {}, item);
-	},
-	getColumnValue: function (item, column, scope) {
-		if (typeof column.valueFiltered !== 'function') {
-			return this.getColumnValueRaw(item, column, scope);
-		}
-		return column.valueFiltered(item);
-	},
 	sortByColumn: function(column, asc) {
-		var grid = this;
 		if (this._prevSortColumn === column) {
 			if (this._prevSortAsc === asc) {
 				return;
@@ -254,8 +216,8 @@ MfGridCtrl.prototype = {
 		var sortFn = column.sortFn;
 
 		this._data.sort(function(a, b) {
-			a = grid.getColumnValueRaw(a, column);
-			b = grid.getColumnValueRaw(b, column);
+			a = column.getRawValue(a);
+			b = column.getRawValue(b);
 
 			var hasA = typeof a !== 'undefined' && a !== null,
 				hasB = typeof b !== 'undefined' && b !== null;
@@ -288,9 +250,6 @@ MfGridCtrl.prototype = {
 		this.scrollTop = scrollTop;
 		this.updateVisibleItems();
 	},
-	setVisibleItems: function(newVisibleItems) {
-		this.visibleItems = newVisibleItems;
-	},
 	updateVisibleItems: function() {
 		var rowHeight = this.rowHeight + .5,
 			height = this.viewportHeight,
@@ -301,7 +260,7 @@ MfGridCtrl.prototype = {
 		this.itemsBefore = this.pixelsBefore = 0;
 
 		if (totalItems <= maxVisibleItems || totalItems <= this.virtualizationThreshold) {
-			this.setVisibleItems(this._data);
+			this.visibleItems = this._data;
 			return;
 		}
 
@@ -316,7 +275,7 @@ MfGridCtrl.prototype = {
 
 		var end = Math.min(this.itemsBefore + maxVisibleItems + (bleed + adjustment), totalItems);
 
-		this.setVisibleItems(this._data.slice(this.itemsBefore, end));
+		this.visibleItems = this._data.slice(this.itemsBefore, end);
 	},
 	isItemSelected: function(item) {
 		return this.selectedItems.indexOf(item) !== -1;
@@ -361,43 +320,83 @@ MfGridCtrl.prototype = {
 		}
 		this.allItemsSelected = true;
 	},
-	buildColumn: function(columnDef) {
-		if (typeof columnDef === 'string') {
-			columnDef = {
-				displayName: columnDef,
-				field: columnDef,
-				orderBy: columnDef,
-				valueFiltered: columnDef,
-				valueRaw: columnDef,
-				isItemKey: true
+	buildColumn: function(column) {
+		var grid = this;
+
+		if (typeof column === 'string') {
+			column = {
+				displayName: column,
+				field: column
 			};
 		}
 
-		if (columnDef.isItemKey !== true) {
-			columnDef.isItemKey = false;
-
-			if (
-				typeof columnDef.cellFilter !== 'undefined'
-				&& columnDef.cellFilter.length > 0
-			) {
-				if (typeof columnDef.valueFiltered === 'undefined') {
-					columnDef.valueFiltered = this.$interpolate('{{ ' + columnDef.field + ' | ' + columnDef.cellFilter + ' }}');
-				}
+		function isScopeKey(scope) {
+			if (column.isScopeKey === true) {
+				return true;
 			}
-
-			if (
-				!columnDef.isItemKey
-				&& typeof columnDef.valueRaw === 'undefined'
-			) {
-				columnDef.valueRaw = this.$parse(columnDef.field);
+			if (typeof scope === 'undefined') {
+				return false;
 			}
+			if (
+				typeof scope[column.field] !== 'undefined'
+				|| scope.hasOwnProperty(column.field)
+			) {
+				column.isScopeKey = true;
+			}
+			return column.isScopeKey || false;
 		}
 
-		if (typeof columnDef.sortable === 'undefined') {
-			columnDef.sortable = true;
+		function isItemKey(item) {
+			if (column.isItemKey === true) {
+				return true;
+			}
+			if (typeof item === 'undefined') {
+				return false;
+			}
+			if (
+				typeof item[column.field] !== 'undefined'
+				|| item.hasOwnProperty(column.field)
+			) {
+				column.isItemKey = true;
+			}
+			return column.isItemKey || false;
+		};
+
+		function hasFilter() {
+			return (typeof column.cellFilter === 'string' && column.cellFilter.length > 0);
+		};
+
+		var $rawValueGetter;
+		column.getRawValue = function(item, scope) {
+			if (isItemKey(item)) {
+				return item[this.field];
+			}
+			scope = scope || grid.$scope || {};
+			if (isScopeKey(scope)) {
+				return scope[this.field];
+			}
+			if (typeof $rawValueGetter !== 'function') {
+				$rawValueGetter = grid.$parse(this.field);
+			}
+			return $rawValueGetter(scope, item);
+		};
+
+		var $filteredValueGetter;
+		column.getFilteredValue = function(item, scope) {
+			if (!hasFilter()) {
+				return this.getRawValue(item, scope);
+			}
+			if (typeof $filteredValueGetter !== 'function') {
+				$filteredValueGetter = grid.$parse(this.field + ' | ' + this.cellFilter);
+			}
+			return $filteredValueGetter(scope || grid.$scope || {}, item);
+		};
+
+		if (typeof column.sortable === 'undefined') {
+			column.sortable = true;
 		}
 
-		return columnDef;
+		return column;
 	},
 	setData: function(data) {
 		var resort = this._data !== data || this._oldLength !== data.length;
@@ -450,8 +449,8 @@ MfGridCtrl.prototype = {
 
 angular.module('mf-grid', [])
 
-.controller('MfGridCtrl', ['$parse', '$interpolate', function($parse, $interpolate) {
-	return new MfGridCtrl($parse, $interpolate);
+.controller('MfGridCtrl', ['$parse', function($parse) {
+	return new MfGridCtrl($parse);
 }])
 
 /**
@@ -513,11 +512,35 @@ angular.module('mf-grid', [])
 
 		$win.on('resize', windowResize);
 		scope.$on('$destroy', function() {
+			// window event
+			try {
+				$win.off('resize', windowResize);
+			} catch (e) {}
+
+			// scope methods
+			scope.headerColumnClick = null;
+
+			// grid properties
 			grid._data = null;
-			grid.columnDefs = null;
 			grid.selectedItems = null;
 			grid.visibleItems = null;
-            $win.off('resize', windowResize);
+			grid.columnDefs = null;
+			grid.enabledColumns = null;
+			grid.$parse = null;
+			grid.$scope = null;
+
+			// references to grid
+			grid = null;
+			scope.grid = null;
+
+			// dom elements
+			$headerViewport = null;
+			$headerContent = null;
+			$bodyViewport = null;
+			bodyViewportElement = null;
+			$bodyViewportContent = null;
+			$bodyContentWrapper = null;
+			$bodyContent = null;
         });
 
 		scope.$watch('grid.height', function(height){
@@ -639,14 +662,19 @@ angular.module('mf-grid', [])
 			scope.$apply();
 		});
 
+		function renderTo($element, template) {
+			$element.html(template);
+			$compile($element.contents())(scope);
+		}
+
 		if (!grid.rowTemplateUrl && !grid.rowTemplate) {
 			grid.rowTemplate = defaultRowTemplate;
 		}
 		if (grid.rowTemplate) {
-			$bodyContent.append($compile(grid.rowTemplate)(scope));
+			renderTo($bodyContent, grid.rowTemplate);
 		} else {
 			$http.get(grid.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
-				$bodyContent.append($compile(html)(scope));
+				renderTo($bodyContent, html);
 			});
 		}
 
@@ -654,10 +682,10 @@ angular.module('mf-grid', [])
 			grid.headerRowTemplate = defaultHeaderRowTemplate;
 		}
 		if (grid.headerRowTemplate) {
-			$headerContent.append($compile(grid.headerRowTemplate)(scope));
+			renderTo($headerContent, grid.headerRowTemplate);
 		} else {
 			$http.get(grid.headerRowTemplateUrl, { cache: $templateCache }).success(function(html) {
-				$headerContent.append($compile(html)(scope));
+				renderTo($headerContent, html);
 			});
 		}
 	};
@@ -677,6 +705,7 @@ angular.module('mf-grid', [])
 				}
 			}
 			scope.grid = grid;
+			grid.$scope = scope;
 
 			linker(scope, $el, attrs, grid);
 		}
@@ -702,6 +731,9 @@ angular.module('mf-grid', [])
 		restrict: 'A',
 		link: function(scope, $el, attrs) {
 			$el[0].style.width = scope.column.width;
+			if (scope.column.cellClass) {
+				$el[0].className += ' ' + scope.column.cellClass;
+			}
 		}
 	};
 }]);
