@@ -34,15 +34,16 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 var defaultRowTemplate = '<tr'
 + ' mf-grid-row'
 + ' ng-repeat="item in grid.visibleItems track by $index"'
-+ ' ng-class="{\'grid-row-selected\': grid.isItemSelected(item)}"'
++ ' ng-class="rowClass"'
 + ' class="grid-row">'
 + '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
-//+ '<span ng-show="grid.isItemSelected(item)" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
-+ '<input ng-checked="grid.isItemSelected(item)" type="checkbox" />'
+//+ '<span ng-show="isSelected" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
++ '<input ng-checked="isSelected" type="checkbox" />'
 + '</td>'
 + '<td mf-grid-column'
 + ' ng-repeat="column in grid.enabledColumns"'
-+ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
+//+ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
++ ' class="grid-column"></td>'
 + '</tr>';
 
 function getScrollBarWidth() {
@@ -568,13 +569,15 @@ angular.module('mf-grid', [])
 		});
 
 		scope.$watch('grid.headerRowHeight', function(height){
-			height = parseInt(height, 10) || 0;
-			var $headerRow = $headerViewport.find('.grid-row');
-			if ($headerRow.length !== 0) {
-				$headerRow[0].style.height = height + 'px';
-				bodyViewportElement.style.top = $headerRow.height() + 'px';
-			}
-			updateHeight();
+			$timeout(function(){
+				height = parseInt(height, 10) || 0;
+				var $headerRow = $headerViewport.find('.grid-row');
+				if ($headerRow.length !== 0) {
+					$headerRow[0].style.height = height + 'px';
+					bodyViewportElement.style.top = $headerViewport[0].offsetHeight + 'px';
+				}
+				updateHeight();
+			});
 		});
 
 		scope.headerColumnClick = function(column, index) {
@@ -718,10 +721,25 @@ angular.module('mf-grid', [])
 		require: '^mfGrid',
 		link: function(scope, $el, attrs, grid) {
 			$el[0].style.height = grid.rowHeight + 'px';
-			scope.$watch('grid.itemsBefore', function(){
-				scope.itemIndex = grid.itemsBefore + scope.$index;
+
+			scope.$watch(function(){
+				return grid.itemsBefore;
+			}, function(){
+				var itemIndex = grid.itemsBefore + scope.$index;
+				scope.itemIndex = itemIndex;
 //				$el[0].style.top = top + 'px';
+				scope.rowClass['grid-row-odd'] = itemIndex % 2 === 0;
+				scope.rowClass['grid-row-even'] = itemIndex % 2 === 1;
 			});
+
+			scope.$watch(function(){
+				return grid.isItemSelected(scope.item);
+			}, function(isSelected){
+				scope.isSelected = isSelected;
+				scope.rowClass['grid-row-selected'] = isSelected;
+			});
+
+			scope.rowClass = {};
 		}
 	};
 }])
@@ -734,6 +752,14 @@ angular.module('mf-grid', [])
 			if (scope.column.cellClass) {
 				$el[0].className += ' ' + scope.column.cellClass;
 			}
+			scope.$watch(function(){
+				return scope.column.getFilteredValue(scope.item, scope.$parent);
+			}, function(value){
+				if (typeof value === 'undefined') {
+					value = '';
+				}
+				$el[0].innerHTML = value;
+			});
 		}
 	};
 }]);
