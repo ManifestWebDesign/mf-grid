@@ -24,7 +24,7 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + ' ng-style="{ width: column.width }"'
 + ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
 + ' ng-click="headerColumnClick(column, $index)"'
-+ ' class="grid-column">{{ column.displayName }}'
++ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
 + '<div'
 + ' ng-show="grid.enableSorting && grid.sortColumn === column"'
 + ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'down\' : \'up\' }} icon-chevron-{{ grid.sortAsc ? \'down\' : \'up\' }}"></div>'
@@ -33,16 +33,16 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 
 var defaultRowTemplate = '<tr'
 + ' mf-grid-row'
-+ ' ng-repeat="row in grid.visibleItems"'
-+ ' ng-class="{\'grid-row-selected\': grid.isItemSelected(row.item)}"'
++ ' ng-repeat="item in grid.visibleItems track by $index"'
++ ' ng-class="{\'grid-row-selected\': grid.isItemSelected(item)}"'
 + ' class="grid-row">'
 + '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
-//+ '<span ng-show="grid.isItemSelected(row.item)" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
-+ '<input ng-checked="grid.isItemSelected(row.item)" type="checkbox" />'
+//+ '<span ng-show="grid.isItemSelected(item)" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
++ '<input ng-checked="grid.isItemSelected(item)" type="checkbox" />'
 + '</td>'
 + '<td mf-grid-column'
 + ' ng-repeat="column in grid.enabledColumns"'
-+ ' class="grid-column">{{ grid.getColumnValue(row.item, column, $parent) }}</td>'
++ ' class="grid-column {{ column.cellClass }}">{{ grid.getColumnValue(item, column, $parent) }}</td>'
 + '</tr>';
 
 function getScrollBarWidth() {
@@ -233,11 +233,7 @@ MfGridCtrl.prototype = {
 		return column.valueRaw(scope || {}, item);
 	},
 	getColumnValue: function (item, column, scope) {
-		if (
-			(this.isItemKey(item, column)
-			|| this.isScopeKey(scope, column))
-			&& typeof column.valueFiltered !== 'function'
-		) {
+		if (typeof column.valueFiltered !== 'function') {
 			return this.getColumnValueRaw(item, column, scope);
 		}
 		return column.valueFiltered(item);
@@ -293,21 +289,7 @@ MfGridCtrl.prototype = {
 		this.updateVisibleItems();
 	},
 	setVisibleItems: function(newVisibleItems) {
-		for (var x = 0, l = newVisibleItems.length; x < l; ++x) {
-			if (typeof this.visibleItems[x] === 'undefined') {
-				this.visibleItems[x] = {};
-			}
-//			else {
-//				this.visibleItems[x].data.length = 0;
-//			}
-//			var data = this.visibleItems[x].data;
-//			for (var c = 0, lc = this.enabledColumns.length; c < lc; ++c) {
-//				var column = this.enabledColumns[c];
-//				data.push(this.getColumnValue(newVisibleItems[x], column));
-//			}
-			this.visibleItems[x].item = newVisibleItems[x];
-		}
-		this.visibleItems.length = newVisibleItems.length;
+		this.visibleItems = newVisibleItems;
 	},
 	updateVisibleItems: function() {
 		var rowHeight = this.rowHeight + .5,
@@ -619,7 +601,7 @@ angular.module('mf-grid', [])
 			if (!scope) {
 				return;
 			}
-			return scope.row.item;
+			return scope.item;
 		}
 
 		$headerViewport.on('click', 'input.check-all', function() {
