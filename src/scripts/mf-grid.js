@@ -327,7 +327,8 @@ MfGridCtrl.prototype = {
 		if (typeof column === 'string') {
 			column = {
 				displayName: column,
-				field: column
+				field: column,
+				width: '50px'
 			};
 		}
 
@@ -421,7 +422,7 @@ MfGridCtrl.prototype = {
 
 		this.enabledColumns = [];
 		var columns = this.columnDefs;
-		if (columns) {
+		if (columns && columns.length) {
 			for (var i = 0, l = columns.length; i < l; ++i) {
 				var column = this.buildColumn(columns[i]);
 
@@ -448,7 +449,7 @@ MfGridCtrl.prototype = {
 	}
 };
 
-angular.module('mf-grid', [])
+angular.module('mfGrid', [])
 
 .controller('MfGridCtrl', ['$parse', function($parse) {
 	return new MfGridCtrl($parse);
@@ -574,7 +575,7 @@ angular.module('mf-grid', [])
 				var $headerRow = $headerViewport.find('.grid-row');
 				if ($headerRow.length !== 0) {
 					$headerRow[0].style.height = height + 'px';
-					bodyViewportElement.style.top = $headerViewport[0].offsetHeight + 'px';
+					bodyViewportElement.style.top = $headerViewport[0].offsetHeight || height + 'px';
 				}
 				updateHeight();
 			});
@@ -718,8 +719,8 @@ angular.module('mf-grid', [])
 .directive('mfGridRow', [function() {
 	return {
 		restrict: 'A',
-		require: '^mfGrid',
-		link: function(scope, $el, attrs, grid) {
+		link: function(scope, $el, attrs) {
+			var grid = scope.grid;
 			$el[0].style.height = grid.rowHeight + 'px';
 
 			scope.$watch(function(){

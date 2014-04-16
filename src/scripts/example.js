@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('app', [
-	'mf-grid'
+	'mfGrid'
 ])
 
 .controller('MainCtrl', ['$scope', function($scope) {
