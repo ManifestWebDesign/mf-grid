@@ -6,7 +6,7 @@ var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._dat
 + '<thead class="grid-header-content"></thead>'
 + '</table>'
 + '</div>'
-+ '<div class="grid-body">'
++ '<div class="grid-body overthrow">'
 + '<div class="grid-body-viewport-content">'
 + '<table class="grid-body-content-wrapper table">'
 + '<tbody class="grid-body-content"></tbody>'
@@ -27,7 +27,7 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 + ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
 + '<div'
 + ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
-+ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'down\' : \'up\' }} icon-chevron-{{ grid.sortAsc ? \'down\' : \'up\' }}"></div>'
++ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
 + '</th>'
 + '</tr>';
 
@@ -70,6 +70,22 @@ function getScrollBarWidth() {
     document.body.removeChild(outer);
 
     return (w1 - w2);
+}
+
+function getStringWidth(string, font) {
+	var f = font || '12px arial',
+		o = $('<div>' + string + '</div>').css({
+			'position': 'absolute',
+			'float': 'left',
+			'white-space': 'nowrap',
+			'visibility': 'hidden',
+			'font': f
+		}).appendTo($('body')),
+		w = o.width();
+
+	o.remove();
+
+	return w;
 }
 
 Array.prototype.remove = Array.prototype.remove || function(from, to) {
@@ -183,6 +199,7 @@ MfGridCtrl.prototype = {
 	selectedItems: null,
 	multiSelect: true,
 	allItemsSelected: false,
+	trackItemBy: null,
 	$parse: null,
 	visibleItems: null,
 	virtualizationThreshold: 50,
@@ -326,10 +343,20 @@ MfGridCtrl.prototype = {
 
 		if (typeof column === 'string') {
 			column = {
-				displayName: column,
-				field: column,
-				width: '50px'
+				field: column
 			};
+		}
+
+		if (typeof column.displayName === 'undefined') {
+			column.displayName = column.field;
+		}
+
+		if (typeof column.visible === 'undefined') {
+			column.visible = true;
+		}
+
+		if (typeof column.sortable === 'undefined') {
+			column.sortable = true;
 		}
 
 		function isScopeKey(scope) {
@@ -394,11 +421,51 @@ MfGridCtrl.prototype = {
 			return $filteredValueGetter(scope || grid.$scope || {}, item);
 		};
 
-		if (typeof column.sortable === 'undefined') {
-			column.sortable = true;
+		column.getLongestValue = function() {
+			if (!grid._data || !grid._data.length) {
+				return null;
+			}
+			var longestVal = this.displayName;
+			for (var x = 0, l = Math.min(grid._data.length, 50); x < l; ++x) {
+				var item = grid._data[x];
+				var value = this.getFilteredValue(item);
+				if (value === null || typeof value === 'undefined' || typeof value.toString === 'undefined') {
+					continue;
+				}
+				var stringVal = value.toString();
+				if (stringVal.length > longestVal.length) {
+					longestVal = stringVal;
+				}
+			}
+			return longestVal;
+		};
+
+		if (typeof column.width === 'undefined' || column.width === 'auto') {
+			var longestVal = column.getLongestValue();
+			if (longestVal.length > 0) {
+				var font = $('table.grid-body-content-wrapper').css('font');
+				column.width = getStringWidth(longestVal, font) + 30 + 'px';
+			} else {
+				column.width = '50px';
+			}
 		}
 
 		return column;
+	},
+	setColumns: function(columns) {
+		this.enabledColumns = [];
+		if (columns && columns.length) {
+			for (var i = 0, l = columns.length; i < l; ++i) {
+				var column = this.buildColumn(columns[i]);
+				if (column.visible) {
+					this.enabledColumns.push(column);
+				}
+			}
+		} else if (this._data.length > 0) {
+			for (var col in this._data[0]) {
+				this.enabledColumns.push(this.buildColumn(col));
+			}
+		}
 	},
 	setData: function(data) {
 		var resort = this._data !== data || this._oldLength !== data.length;
@@ -415,33 +482,31 @@ MfGridCtrl.prototype = {
 			var item = this.selectedItems[x];
 			if (data.indexOf(item) !== -1) {
 				newSelectedItems.push(item);
+				continue;
+			}
+			if (
+				this.trackItemBy !== null
+				&& typeof this.trackItemBy === 'string'
+				&& typeof item[this.trackItemBy] !== 'undefined'
+			) {
+				for (var i = 0, len = data.length; i < len; ++i) {
+					var newItem = data[i];
+					if (newItem === null || typeof newItem === 'undefined') {
+						continue;
+					}
+					if (item[this.trackItemBy] === newItem[this.trackItemBy]) {
+						newSelectedItems.push(newItem);
+						break;
+					}
+				}
 			}
 		}
 		this.selectedItems = newSelectedItems;
 		this.updateCheckAll();
 
-		this.enabledColumns = [];
-		var columns = this.columnDefs;
-		if (columns && columns.length) {
-			for (var i = 0, l = columns.length; i < l; ++i) {
-				var column = this.buildColumn(columns[i]);
+		this.setColumns(this.columnDefs)
 
-				if (
-					this.ignoreColumns
-					&& this.ignoreColumns.hasOwnProperty(column.field)
-				) {
-					continue;
-				}
-
-				this.enabledColumns.push(column);
-			}
-		} else {
-			for (var col in data[0]) {
-				this.enabledColumns.push(this.buildColumn(col));
-			}
-		}
-
-		if (resort && this.sortColumn) {
+		if (resort && typeof this.headerColumnClick !== 'function' && this.sortColumn) {
 			this.sortByColumn(this.sortColumn, this.sortAsc);
 		}
 
@@ -481,8 +546,8 @@ angular.module('mfGrid', [])
 			updateHeight();
 		});
 
-		scope.$watchCollection('grid.columnDefs', function(oldColumns, newColumns) {
-			grid.setData(grid._data);
+		scope.$watchCollection('grid.columnDefs', function(newColumns, oldColumns) {
+			grid.setColumns(newColumns);
 		});
 
 		scope.$watchCollection('grid.selectedItems', function(){
@@ -503,8 +568,13 @@ angular.module('mfGrid', [])
 			} else {
 				scope.scrollbarWidth = 0;
 			}
-			grid.setViewportHeight(bodyViewportElement.offsetHeight);
 		}
+
+		scope.$watch(function(){
+			return bodyViewportElement.offsetHeight;
+		}, function(){
+			grid.setViewportHeight(bodyViewportElement.offsetHeight);
+		});
 
 		var $win = angular.element($window);
 		function windowResize(){
@@ -586,12 +656,12 @@ angular.module('mfGrid', [])
 				return;
 			}
 
-			grid.sortColumn = column;
-			if (grid.sortColumn === column) {
+			if (grid.sortColumn && column && grid.sortColumn.field === column.field) {
 				grid.sortAsc = !grid.sortAsc;
 			} else {
 				grid.sortAsc = true;
 			}
+			grid.sortColumn = column;
 
 			if (typeof grid.headerColumnClick === 'function') {
 				grid.headerColumnClick(typeof column.value === 'string' ? column.value : column, index, grid.sortAsc);
