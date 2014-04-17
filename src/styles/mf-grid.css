@@ -60,7 +60,7 @@ table.grid-body-content-wrapper {
 }
 
 .grid-checkbox-column {
-	width: 40px;
+	width: 35px;
 }
 
 .grid-body .grid-row-even .grid-column {
@@ -80,7 +80,8 @@ table.grid-body-content-wrapper {
 }
 
 .grid-body .grid-row:hover .grid-column {
-	background: #0088cc;
+	/*background: #0088cc;*/
 	cursor: pointer;
+	color: #000;
+	text-decoration: underline;
 }
-

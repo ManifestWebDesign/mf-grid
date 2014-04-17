@@ -444,7 +444,7 @@ MfGridCtrl.prototype = {
 			var longestVal = column.getLongestValue();
 			if (longestVal.length > 0) {
 				var font = $('table.grid-body-content-wrapper').css('font');
-				column.width = getStringWidth(longestVal, font) + 30 + 'px';
+				column.width = getStringWidth(longestVal, font) + 25 + 'px';
 			} else {
 				column.width = '50px';
 			}
