@@ -94,15 +94,6 @@ Array.prototype.remove = Array.prototype.remove || function(from, to) {
 	return this.push.apply(this, rest);
 };
 
-var MfGridCtrl = function MfGridCtrl($parse) {
-	this.$parse = $parse;
-	this._data = [];
-	this.enabledColumns = [];
-	this.selectedItems = [];
-	this.visibleItems = [];
-	this.columnDefs = [];
-};
-
 var variableRegEx = /^(?!(?:do|if|in|for|let|new|try|var|case|else|enum|eval|false|null|this|true|void|with|break|catch|class|const|super|throw|while|yield|delete|export|import|public|return|static|switch|typeof|default|extends|finally|package|private|continue|debugger|function|arguments|interface|protected|implements|instanceof)$)[$A-Z\_a-z]*$/;
 
 var sortService = {};
@@ -187,6 +178,19 @@ var sortService = {};
 	 }
  };
  //#endregion
+
+var gridId = 1;
+
+var MfGridCtrl = function MfGridCtrl($parse) {
+	this.id = gridId;
+	gridId++;
+	this.$parse = $parse;
+	this._data = [];
+	this.enabledColumns = [];
+	this.selectedItems = [];
+	this.visibleItems = [];
+	this.columnDefs = [];
+};
 
 /**
  * Controller
@@ -539,6 +543,13 @@ angular.module('mfGrid', [])
 			throw new Error('.grid-body not found.');
 		}
 
+		var isViewPortScrolling = bodyViewportElement.style.overflowY === 'scroll'
+			|| bodyViewportElement.style.overflowY === 'auto'
+			|| bodyViewportElement.style.overflow === 'auto'
+			|| bodyViewportElement.style.overflow === 'scroll';
+
+		var scrollContainer = isViewPortScrolling ? bodyViewportElement : window;
+
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
 		scope.$watchCollection('$parent.' + grid.data, function(r) {
@@ -568,13 +579,23 @@ angular.module('mfGrid', [])
 			} else {
 				scope.scrollbarWidth = 0;
 			}
+
+			if (scrollContainer === window) {
+				var height = $(window).height();
+				var top = $el.offset().top - window.scrollY;
+				if (top > 0) {
+					height -= top;
+				}
+			} else {
+				height = bodyViewportElement.offsetHeight;
+			}
+
+			grid.setViewportHeight(height);
 		}
 
 		scope.$watch(function(){
-			return bodyViewportElement.offsetHeight;
-		}, function(){
-			grid.setViewportHeight(bodyViewportElement.offsetHeight);
-		});
+			return scrollContainer.offsetHeight;
+		}, updateHeight);
 
 		var $win = angular.element($window);
 		function windowResize(){
@@ -583,10 +604,14 @@ angular.module('mfGrid', [])
 		}
 
 		$win.on('resize', windowResize);
+		$win.on('scroll', onWindowScroll);
 		scope.$on('$destroy', function() {
+			var id = grid.id;
+
 			// window event
 			try {
 				$win.off('resize', windowResize);
+				$win.off('scroll', onWindowScroll);
 			} catch (e) {}
 
 			// scope methods
@@ -606,6 +631,7 @@ angular.module('mfGrid', [])
 			scope.grid = null;
 
 			// dom elements
+			$el = null;
 			$headerViewport = null;
 			$headerContent = null;
 			$bodyViewport = null;
@@ -613,6 +639,7 @@ angular.module('mfGrid', [])
 			$bodyViewportContent = null;
 			$bodyContentWrapper = null;
 			$bodyContent = null;
+			scope = null;
         });
 
 		scope.$watch('grid.height', function(height){
@@ -645,7 +672,7 @@ angular.module('mfGrid', [])
 				var $headerRow = $headerViewport.find('.grid-row');
 				if ($headerRow.length !== 0) {
 					$headerRow[0].style.height = height + 'px';
-					bodyViewportElement.style.top = $headerViewport[0].offsetHeight || height + 'px';
+					bodyViewportElement.style.marginTop = $headerViewport[0].offsetHeight || height + 'px';
 				}
 				updateHeight();
 			});
@@ -674,9 +701,11 @@ angular.module('mfGrid', [])
 		function onScroll() {
 			$headerViewport[0].scrollLeft = bodyViewportElement.scrollLeft;
 
+			if (scrollContainer !== bodyViewportElement) {
+				return;
+			}
 			var newScrollTop = bodyViewportElement.scrollTop,
 				threshold = 1,
-//				threshold = Math.max(1, Math.ceil(grid.virtualizationOverflow / 2)),
 				min = prevScrollTop - grid.rowHeight * threshold,
 				max = prevScrollTop + grid.rowHeight * threshold;
 
@@ -690,8 +719,29 @@ angular.module('mfGrid', [])
 
 			scope.$digest();
 		}
-
 		bodyViewportElement.addEventListener('scroll', onScroll);
+
+		function onWindowScroll() {
+			if (scrollContainer !== window) {
+				return;
+			}
+
+			var newScrollTop = Math.max(0, window.scrollY - $el.offset().top),
+				threshold = 1,
+				min = prevScrollTop - grid.rowHeight * threshold,
+				max = prevScrollTop + grid.rowHeight * threshold;
+
+			if (newScrollTop >= min && newScrollTop <= max) {
+				return;
+			}
+			updateHeight();
+
+			prevScrollTop = newScrollTop;
+
+			grid.setScrollTop(newScrollTop);
+			$bodyContentWrapper[0].style.top = grid.pixelsBefore + 'px';
+			scope.$digest();
+		}
 
 		function getItem($checkbox) {
 			var scope = $checkbox.closest('.grid-row').scope();
