@@ -17,11 +17,13 @@
 
 .grid-header {
 	position: absolute;
+	background: #fff;
 	top: 0;
 	right: 0;
 	left: 0;
 	overflow: hidden;
 	border-bottom: 1px solid #ddd;
+	z-index: 50;
 }
 
 .grid-header .grid-column {

@@ -273,7 +273,7 @@ MfGridCtrl.prototype = {
 		this.updateVisibleItems();
 	},
 	updateVisibleItems: function() {
-		var rowHeight = this.rowHeight + .5,
+		var rowHeight = this.rowHeight,
 			height = this.viewportHeight,
 			totalItems = this._data.length,
 			maxVisibleItems = Math.ceil(height / rowHeight);
@@ -508,7 +508,7 @@ MfGridCtrl.prototype = {
 		this.selectedItems = newSelectedItems;
 		this.updateCheckAll();
 
-		this.setColumns(this.columnDefs)
+		this.setColumns(this.columnDefs);
 
 		if (resort && typeof this.headerColumnClick !== 'function' && this.sortColumn) {
 			this.sortByColumn(this.sortColumn, this.sortAsc);
@@ -543,10 +543,12 @@ angular.module('mfGrid', [])
 			throw new Error('.grid-body not found.');
 		}
 
-		var isViewPortScrolling = bodyViewportElement.style.overflowY === 'scroll'
-			|| bodyViewportElement.style.overflowY === 'auto'
-			|| bodyViewportElement.style.overflow === 'auto'
-			|| bodyViewportElement.style.overflow === 'scroll';
+		var overflow = $bodyViewport.css('overflow');
+		var overflowY = $bodyViewport.css('overflow-y');
+		var isViewPortScrolling = overflowY === 'scroll'
+			|| overflowY === 'auto'
+			|| overflow === 'scroll'
+			|| overflow === 'auto';
 
 		var scrollContainer = isViewPortScrolling ? bodyViewportElement : window;
 
@@ -574,6 +576,15 @@ angular.module('mfGrid', [])
 		});
 
 		function updateHeight() {
+			var height = parseInt(grid.headerRowHeight, 10) || 0;
+			var $headerRow = $headerViewport.find('.grid-row');
+			if ($headerRow.length !== 0) {
+				$headerRow[0].style.height = height + 'px';
+				bodyViewportElement.style.marginTop = $headerViewport[0].offsetHeight || height + 'px';
+			} else {
+				bodyViewportElement.style.marginTop = height + 'px';
+			}
+
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
 				scope.scrollbarWidth = getScrollBarWidth();
 			} else {
@@ -668,12 +679,6 @@ angular.module('mfGrid', [])
 
 		scope.$watch('grid.headerRowHeight', function(height){
 			$timeout(function(){
-				height = parseInt(height, 10) || 0;
-				var $headerRow = $headerViewport.find('.grid-row');
-				if ($headerRow.length !== 0) {
-					$headerRow[0].style.height = height + 'px';
-					bodyViewportElement.style.marginTop = $headerViewport[0].offsetHeight || height + 'px';
-				}
 				updateHeight();
 			});
 		});
@@ -734,7 +739,6 @@ angular.module('mfGrid', [])
 			if (newScrollTop >= min && newScrollTop <= max) {
 				return;
 			}
-			updateHeight();
 
 			prevScrollTop = newScrollTop;
 
