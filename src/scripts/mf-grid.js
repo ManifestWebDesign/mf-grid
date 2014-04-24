@@ -210,7 +210,7 @@ MfGridCtrl.prototype = {
 	virtualizationOverflow: 3,
 	itemsBefore: 0,
 	pixelsBefore: 0,
-	height: 0,
+	height: 'auto',
 	viewportHeight: 0,
 	headerRowHeight: 0,
 	enableSorting: true,
@@ -543,14 +543,7 @@ angular.module('mfGrid', [])
 			throw new Error('.grid-body not found.');
 		}
 
-		var overflow = $bodyViewport.css('overflow');
-		var overflowY = $bodyViewport.css('overflow-y');
-		var isViewPortScrolling = overflowY === 'scroll'
-			|| overflowY === 'auto'
-			|| overflow === 'scroll'
-			|| overflow === 'auto';
-
-		var scrollContainer = isViewPortScrolling ? bodyViewportElement : window;
+		var scrollContainer = window;
 
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
@@ -655,7 +648,21 @@ angular.module('mfGrid', [])
 
 		scope.$watch('grid.height', function(height){
 			if (height) {
-				$el.height(height);
+				$el.css('height', height);
+
+				if (height === 0 || height === '' || height === 'auto') {
+					scrollContainer = window;
+					$bodyViewport.css('position', 'static');
+				} else {
+					scrollContainer = bodyViewportElement;
+					$bodyViewport.css({
+						position: 'absolute',
+						top: 0,
+						bottom: 0,
+						left: 0,
+						right: 0
+					});
+				}
 			}
 
 			$timeout(function(){
