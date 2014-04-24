@@ -32,18 +32,13 @@
 
 .grid-body {
 	overflow: auto;
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
 }
 
 .grid-body-viewport-content {
 	position: relative;
 }
 
-table.grid-body-content-wrapper {
+.grid-body-content-wrapper {
 	position: absolute;
 }
 

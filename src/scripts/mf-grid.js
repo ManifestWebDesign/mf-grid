@@ -46,6 +46,17 @@ var defaultRowTemplate = '<tr'
 + ' class="grid-column"></td>'
 + '</tr>';
 
+jQuery.fn.isAutoHeight = function(){
+    var originalHeight = this.height();
+	var $testEl = $('<div></div>').css({
+		clear: 'both',
+		height: originalHeight + 10
+	}).appendTo(this);
+	var newHeight = this.height();
+    $testEl.remove();
+    return newHeight > originalHeight;
+};
+
 function getScrollBarWidth() {
     var inner = document.createElement('p');
     inner.style.width = "100%";
@@ -210,7 +221,7 @@ MfGridCtrl.prototype = {
 	virtualizationOverflow: 3,
 	itemsBefore: 0,
 	pixelsBefore: 0,
-	height: 'auto',
+	height: null,
 	viewportHeight: 0,
 	headerRowHeight: 0,
 	enableSorting: true,
@@ -569,32 +580,51 @@ angular.module('mfGrid', [])
 		});
 
 		function updateHeight() {
-			var height = parseInt(grid.headerRowHeight, 10) || 0;
-			var $headerRow = $headerViewport.find('.grid-row');
-			if ($headerRow.length !== 0) {
-				$headerRow[0].style.height = height + 'px';
-				bodyViewportElement.style.marginTop = $headerViewport[0].offsetHeight || height + 'px';
+			var headerRowHeight = parseInt(grid.headerRowHeight, 10) || 0,
+				$headerRow = $headerViewport.find('.grid-row');
+
+			// make content match grid height
+			if ($el.isAutoHeight()) {
+				scrollContainer = window;
+				$bodyViewport.css('position', 'static');
 			} else {
-				bodyViewportElement.style.marginTop = height + 'px';
+				scrollContainer = bodyViewportElement;
+				$bodyViewport.css({
+					position: 'absolute',
+					top: 0,
+					bottom: 0,
+					left: 0,
+					right: 0
+				});
 			}
 
+			// header row height
+			if ($headerRow.length !== 0) {
+				$headerRow[0].style.height = headerRowHeight + 'px';
+				bodyViewportElement.style.marginTop = $headerViewport[0].offsetHeight || headerRowHeight + 'px';
+			} else {
+				bodyViewportElement.style.marginTop = headerRowHeight + 'px';
+			}
+
+			// detect scrollbar width
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
 				scope.scrollbarWidth = getScrollBarWidth();
 			} else {
 				scope.scrollbarWidth = 0;
 			}
 
+			// detect visible height of grid
+			var viewportHeight;
 			if (scrollContainer === window) {
-				var height = $(window).height();
+				viewportHeight = $(window).height();
 				var top = $el.offset().top - window.scrollY;
 				if (top > 0) {
-					height -= top;
+					viewportHeight -= top;
 				}
 			} else {
-				height = bodyViewportElement.offsetHeight;
+				viewportHeight = bodyViewportElement.offsetHeight;
 			}
-
-			grid.setViewportHeight(height);
+			grid.setViewportHeight(viewportHeight);
 		}
 
 		scope.$watch(function(){
@@ -647,22 +677,8 @@ angular.module('mfGrid', [])
         });
 
 		scope.$watch('grid.height', function(height){
-			if (height) {
+			if (typeof height !== 'undefined' && height !== '' && height !== null) {
 				$el.css('height', height);
-
-				if (height === 0 || height === '' || height === 'auto') {
-					scrollContainer = window;
-					$bodyViewport.css('position', 'static');
-				} else {
-					scrollContainer = bodyViewportElement;
-					$bodyViewport.css({
-						position: 'absolute',
-						top: 0,
-						bottom: 0,
-						left: 0,
-						right: 0
-					});
-				}
 			}
 
 			$timeout(function(){
