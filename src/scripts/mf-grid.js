@@ -209,7 +209,7 @@ var MfGridCtrl = function MfGridCtrl($parse) {
 MfGridCtrl.prototype = {
 	_data: null,
 	columnDefs: null,
-	showSelectionCheckbox: true,
+	showSelectionCheckbox: false,
 	enabledColumns: null,
 	selectedItems: null,
 	multiSelect: true,
@@ -457,9 +457,9 @@ MfGridCtrl.prototype = {
 
 		if (typeof column.width === 'undefined' || column.width === 'auto') {
 			var longestVal = column.getLongestValue();
-			if (longestVal.length > 0) {
+			if (null !== longestVal && longestVal.length > 0) {
 				var font = $('table.grid-body-content-wrapper').css('font');
-				column.width = getStringWidth(longestVal, font) + 25 + 'px';
+				column.width = getStringWidth(longestVal, font) + 28 + 'px';
 			} else {
 				column.width = '50px';
 			}
