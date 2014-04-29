@@ -11,14 +11,14 @@
 		<meta name="viewport" content="width=device-width" />
 		<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-		<!-- build:css({.tmp,src}) styles/mf-grid.min.css -->
-		<link rel="stylesheet" href="styles/mf-grid.css" />
+		<!-- build:css({.tmp,src}) mf-grid.min.css -->
+		<link rel="stylesheet" href="mf-grid.css" />
 		<!-- endbuild -->
 
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
 
-		<!-- build:css({.tmp,src}) styles/example.min.css -->
-		<link rel="stylesheet" href="styles/example.css" />
+		<!-- build:css({.tmp,src}) example/example.min.css -->
+		<link rel="stylesheet" href="example/example.css" />
 		<!-- endbuild -->
 	</head>
 	<body ng-app="app" id="ng-app">
@@ -27,23 +27,21 @@
 		<![endif]-->
 
 		<!-- Add your site or application content here -->
-		<div
-			class="container"
-			ng-controller="MainCtrl"
-			ng-include=" 'views/example.html' ">
+		<div class="container" ng-controller="MainCtrl">
+			<div mf-grid="gridOpts" class="custom-grid"></div>
 		</div>
 
-        <!-- build:js({.tmp,src}) scripts/modules.min.js -->
+        <!-- build:js({.tmp,src}) example/modules.min.js -->
 		<script src="bower_components/jquery/jquery.js"></script>
 		<script src="bower_components/angular/angular.js"></script>
         <!-- endbuild -->
 
-        <!-- build:js({.tmp,src}) scripts/mf-grid.min.js -->
-		<script src="scripts/mf-grid.js"></script>
+        <!-- build:js({.tmp,src}) mf-grid.min.js -->
+		<script src="mf-grid.js"></script>
 		<!-- endbuild -->
 
-		<!-- build:js({.tmp,src}) scripts/example.min.js -->
-        <script src="scripts/example.js"></script>
+		<!-- build:js({.tmp,src}) example/example.min.js -->
+        <script src="example/example.js"></script>
         <!-- endbuild -->
 	</body>
 </html>

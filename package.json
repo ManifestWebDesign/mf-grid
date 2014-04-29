@@ -50,5 +50,5 @@
     "type": "git",
     "url": "git@github.com:ManifestWebDesign/mf-grid.git"
   },
-  "main": "./dist/scripts/mf-grid.min.js"
+  "main": "./dist/mf-grid.min.js"
 }

@@ -2,7 +2,7 @@
 	"name": "mf-grid",
 	"version": "0.0.6",
 	"appPath": "src",
-	"main": "src/scripts/mf-grid.js",
+	"main": "src/mf-grid.js",
 	"dependencies": {
 		"angular": "~1.2.0",
 		"jquery": "~1.9.1"

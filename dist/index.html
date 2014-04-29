@@ -11,11 +11,11 @@
 		<meta name="viewport" content="width=device-width">
 		<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-		<link rel="stylesheet" href="styles/mf-grid.min.css"/>
+		<link rel="stylesheet" href="mf-grid.min.css"/>
 
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 
-		<link rel="stylesheet" href="styles/example.min.css"/>
+		<link rel="stylesheet" href="example/example.min.css"/>
 	</head>
 	<body ng-app="app" id="ng-app">
 		<!--[if lt IE 7]>
@@ -23,13 +23,14 @@
 		<![endif]-->
 
 		<!-- Add your site or application content here -->
-		<div class="container" ng-controller="MainCtrl" ng-include=" 'views/example.html' ">
+		<div class="container" ng-controller="MainCtrl">
+			<div mf-grid="gridOpts" class="custom-grid"></div>
 		</div>
 
-        <script src="scripts/modules.min.js"></script>
+        <script src="example/modules.min.js"></script>
 
-        <script src="scripts/mf-grid.min.js"></script>
+        <script src="mf-grid.min.js"></script>
 
-		<script src="scripts/example.min.js"></script>
+		<script src="example/example.min.js"></script>
 	</body>
 </html>
