@@ -30,7 +30,7 @@ angular.module('app', [
 	}
 
 	$scope.gridOpts = {
-		data: 'data',
+		data: 'data | filter:filterText',
 		selectedItems: [
 			$scope.data[2],
 			$scope.data[5]
