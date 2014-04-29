@@ -538,7 +538,7 @@ angular.module('mfGrid', [])
 /**
  * Directives
  */
-.directive('mfGrid', ['$http', '$templateCache', '$compile', '$timeout', '$window', function($http, $templateCache, $compile, $timeout, $window) {
+.directive('mfGrid', ['$http', '$templateCache', '$compile', '$parse', '$timeout', '$window', function($http, $templateCache, $compile, $parse, $timeout, $window) {
 
 	function linker(scope, $el, attrs, grid) {
 
@@ -548,17 +548,19 @@ angular.module('mfGrid', [])
 			bodyViewportElement = $bodyViewport[0],
 			$bodyViewportContent = $el.find('.grid-body-viewport-content'),
 			$bodyContentWrapper = $bodyViewport.find('.grid-body-content-wrapper'),
-			$bodyContent = $bodyViewport.find('.grid-body-content');
+			$bodyContent = $bodyViewport.find('.grid-body-content'),
+			$dataGetter = $parse(grid.data),
+			scrollContainer = window;
 
 		if (!bodyViewportElement) {
 			throw new Error('.grid-body not found.');
 		}
 
-		var scrollContainer = window;
-
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
-		scope.$watchCollection('$parent.' + grid.data, function(r) {
+		scope.$watchCollection(function(){
+			return $dataGetter(scope.$parent);
+		}, function(r) {
 			grid.setData(r);
 			updateHeight();
 		});
