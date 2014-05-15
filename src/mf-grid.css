@@ -10,9 +10,12 @@
 	table-layout: fixed;
 	border-collapse: collapse;
 	border-spacing: 0;
-	margin: 0;
 	width: 0;
 	max-width: none;
+}
+
+.grid-container .table {
+	margin: 0;
 }
 
 .grid-header {
@@ -28,6 +31,7 @@
 
 .grid-header .grid-column {
 	border-bottom: none;
+	cursor: default;
 }
 
 .grid-body {
@@ -51,28 +55,42 @@
 .grid-container .grid-column {
 	text-overflow: ellipsis;
 	text-align: left;
-	border-top: 1px solid #ddd;
 	padding-left: 10px;
 	padding-right: 10px;
+}
+
+.grid-container td.grid-column, .grid-container div.grid-row {
+	border-top: 1px solid #ddd;
+}
+
+.grid-container div.grid-column {
+	display: inline-block;
+	height: 100%;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 .grid-checkbox-column {
 	width: 35px;
 }
 
-.grid-body .grid-row-even .grid-column {
+.grid-body div.grid-row-even,
+.grid-body tr.grid-row-even td.grid-column {
 	background: #f9f9f9;
 }
 
-.grid-body .grid-row-odd .grid-column {
+.grid-body div.grid-row-odd,
+.grid-body tr.grid-row-odd td.grid-column {
 	background: #fff;
 }
 
-.grid-body .grid-row:first-child td {
+.grid-body div.grid-row:first-child,
+.grid-body tr.grid-row:first-child td {
 	border-top-color: transparent;
 }
 
-.grid-body .grid-row-selected .grid-column {
+.grid-body div.grid-row-selected,
+.grid-body tr.grid-row-selected td.grid-column {
 	background: #ffc;
 }
 

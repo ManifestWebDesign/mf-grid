@@ -33,7 +33,7 @@ var defaultHeaderRowTemplate = '<tr class="grid-row">'
 
 var defaultRowTemplate = '<tr'
 + ' mf-grid-row'
-+ ' ng-repeat="item in grid.visibleItems track by $index"'
++ ' ng-repeat="item in grid.visibleItems"'
 + ' ng-class="rowClass"'
 + ' class="grid-row">'
 + '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
@@ -45,6 +45,54 @@ var defaultRowTemplate = '<tr'
 //+ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
 + ' class="grid-column"></td>'
 + '</tr>';
+
+
+
+var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
++ '<div class="grid-header">'
++ '<div class="grid-header-content-wrapper table">'
++ '<div class="grid-header-content"></div>'
++ '</div>'
++ '</div>'
++ '<div class="grid-body overthrow">'
++ '<div class="grid-body-viewport-content">'
++ '<div class="grid-body-content-wrapper table">'
++ '<div class="grid-body-content"></div>'
++ '</div>'
++ '</div>'
++ '</div>'
++ '</div>';
+
+var defaultHeaderRowTemplate = '<div class="grid-row">'
++ '<div ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
++ '<input ng-if="grid.multiSelect" ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
++ '</div>'
++ '<div'
++ ' ng-repeat="column in grid.enabledColumns"'
++ ' ng-style="{ width: column.width }"'
++ ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
++ ' ng-click="headerColumnClick(column, $index)"'
++ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
++ '<div'
++ ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
++ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
++ '</div>'
++ '</div>';
+
+var defaultRowTemplate = '<div'
++ ' mf-grid-row'
++ ' ng-repeat="item in grid.visibleItems"'
++ ' ng-class="rowClass"'
++ ' class="grid-row">'
++ '<div ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
+//+ '<span ng-show="isSelected" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
++ '<input ng-checked="isSelected" type="checkbox" />'
++ '</div>'
++ '<div mf-grid-column'
++ ' ng-repeat="column in grid.enabledColumns"'
+//+ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
++ ' class="grid-column"></div>'
++ '</div>';
 
 jQuery.fn.isAutoHeight = function(){
     var originalHeight = this.height();
@@ -745,8 +793,11 @@ angular.module('mfGrid', [])
 			prevScrollTop = newScrollTop;
 
 			grid.setScrollTop(newScrollTop);
-			$bodyContentWrapper[0].style.top = grid.pixelsBefore + 'px';
-
+//			$bodyContentWrapper[0].style.top = grid.pixelsBefore + 'px';
+			$bodyContentWrapper[0].style.transform = 'translate(0px,' + grid.pixelsBefore + 'px)';
+			$bodyContentWrapper[0].style['-webkit-transform'] = 'translate(0px,' + grid.pixelsBefore + 'px)';
+			$bodyContentWrapper[0].style['-moz-transform'] = 'translate(0px,' + grid.pixelsBefore + 'px)';
+			$bodyContentWrapper[0].style['-ms-transform'] = 'translate(0px,' + grid.pixelsBefore + 'px)';
 			scope.$digest();
 		}
 		bodyViewportElement.addEventListener('scroll', onScroll);
