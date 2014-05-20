@@ -35,7 +35,8 @@
 	font-weight: bold;
 }
 
-.grid-container .grid-row, .grid-container .grid-column {
+.grid-container .grid-row,
+.grid-container .grid-column {
 	box-sizing: border-box;
 	overflow: hidden;
 	white-space: nowrap;
@@ -46,6 +47,7 @@
 .grid-container .grid-row {
 	min-width: 100%;
 	cursor: pointer;
+	line-height: 20px;
 }
 
 .grid-container .grid-column {
@@ -107,4 +109,8 @@
 .grid-body-content .grid-row:hover .grid-column {
 /*	color: #000;
 	text-decoration: underline;*/
+}
+
+.grid-container input {
+	margin: 0;
 }

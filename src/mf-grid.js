@@ -1,7 +1,7 @@
 (function(){
 
 var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
-+ '<div class="grid-header">'
++ '<div class="grid-header" ng-show="grid.showHeaderRow">'
 + '<div class="grid-header-content"></div>'
 + '</div>'
 + '<div class="grid-body overthrow">'
