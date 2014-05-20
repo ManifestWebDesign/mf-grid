@@ -740,14 +740,14 @@ angular.module('mfGrid', [])
 		}
 
 		$win.on('resize', windowResize);
-		$win.on('scroll', onWindowScroll);
+		$win.on('scroll', onScroll);
 		scope.$on('$destroy', function() {
 			var id = grid.id;
 
 			// window event
 			try {
 				$win.off('resize', windowResize);
-				$win.off('scroll', onWindowScroll);
+				$win.off('scroll', onScroll);
 			} catch (e) {}
 
 			// scope methods
@@ -851,31 +851,15 @@ angular.module('mfGrid', [])
 			$headerViewport[0].scrollLeft = bodyViewportElement.scrollLeft;
 //			$bodyContent[0].style.marginLeft = -bodyViewportElement.scrollLeft + 'px';
 
-			if (isWindow) {
-				return;
-			}
-
-			var oldPixelsBefore = grid.pixelsBefore,
-				oldVisibleItems = grid.visibleItems.length;
-			grid.setScrollTop(bodyViewportElement.scrollTop);
-			updateOffsetTop();
-
-			if (grid.pixelsBefore === oldPixelsBefore && grid.visibleItems.length === oldVisibleItems) {
-				return;
-			}
-
-			scope.$digest();
-		}
-		bodyViewportElement.addEventListener('scroll', onScroll);
-
-		function onWindowScroll() {
-			if (!isWindow) {
-				return;
-			}
-
 			var oldPixelsBefore = grid.pixelsBefore,
 				oldVisibleItems = grid.visibleItems.length,
+				scrollTop;
+			if (isWindow) {
 				scrollTop = Math.max(0, window.scrollY - $el.offset().top);
+			} else {
+				scrollTop = bodyViewportElement.scrollTop;
+			}
+
 			grid.setScrollTop(scrollTop);
 			updateOffsetTop();
 
@@ -885,6 +869,7 @@ angular.module('mfGrid', [])
 
 			scope.$digest();
 		}
+		bodyViewportElement.addEventListener('scroll', onScroll);
 
 		function getItem($checkbox) {
 			var scope = $checkbox.closest('.grid-row').scope();
