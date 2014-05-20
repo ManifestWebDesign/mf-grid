@@ -438,6 +438,22 @@ MfGridCtrl.prototype = {
 			return column.isScopeKey || false;
 		}
 
+		function isParentScopeKey(scope) {
+			if (column.isParentScopeKey === true) {
+				return true;
+			}
+			if (typeof scope === 'undefined') {
+				return false;
+			}
+			if (
+				typeof scope[column.field] !== 'undefined'
+				|| scope.hasOwnProperty(column.field)
+			) {
+				column.isParentScopeKey = true;
+			}
+			return column.isParentScopeKey || false;
+		}
+
 		function isItemKey(item) {
 			if (column.isItemKey === true) {
 				return true;
@@ -463,14 +479,17 @@ MfGridCtrl.prototype = {
 			if (isItemKey(item)) {
 				return item[this.field];
 			}
-			scope = scope || grid.$scope || {};
 			if (isScopeKey(scope)) {
 				return scope[this.field];
 			}
+			if (isParentScopeKey(grid.$scope)) {
+				return grid.$scope[this.field];
+			}
+
 			if (typeof $rawValueGetter !== 'function') {
 				$rawValueGetter = grid.$parse(this.field);
 			}
-			return $rawValueGetter(scope, item);
+			return $rawValueGetter(item, grid.$scope);
 		};
 
 		var $filteredValueGetter;
@@ -481,7 +500,7 @@ MfGridCtrl.prototype = {
 			if (typeof $filteredValueGetter !== 'function') {
 				$filteredValueGetter = grid.$parse(this.field + ' | ' + this.cellFilter);
 			}
-			return $filteredValueGetter(scope || grid.$scope || {}, item);
+			return $filteredValueGetter(item, grid.$scope);
 		};
 
 		column.getLongestValue = function() {
@@ -937,7 +956,7 @@ angular.module('mfGrid', [])
 				}
 			}
 			scope.grid = grid;
-			grid.$scope = scope;
+			grid.$scope = scope.$parent;
 
 			linker(scope, $el, attrs, grid);
 		}

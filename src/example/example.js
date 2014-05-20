@@ -28,9 +28,10 @@ angular.module('app', [
 			time: new Date(now + x)
 		});
 	}
+	$scope.dateFormat = 'd/M H:m:s.sss';
 
 	$scope.gridOpts = {
-		data: 'data | filter:filterText',
+		data: 'data | filter : filterText',
 		selectedItems: [
 			$scope.data[2],
 			$scope.data[5]
@@ -64,7 +65,9 @@ angular.module('app', [
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
 			{ displayName: 'Bar', field: 'bar', width: '75px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
-			{ displayName: 'Date Formatted', field: 'time', width: '200px', cellFilter: "date : 'd/M H:m:s.sss'" }
+			{ displayName: 'scope.dateFormat', field: 'dateFormat' },
+			{ displayName: 'Date + dateFormat', field: 'time', width: '200px', cellFilter: "date : dateFormat" },
+			{ displayName: 'Date + cellFilter Format', field: 'time', width: '200px', cellFilter: "date : 'd/M H:m:s.sss'" }
 		]
 	};
 
