@@ -41,7 +41,7 @@ angular.module('app', [
 		enableSorting: true,
 		headerRowHeight: 35,
 		virtualizationThreshold: 50,
-		virtualizationOverflow: 2,
+		virtualizationOverflow: 4,
 		afterSelectionChange: function(selectedItems) {
 			console.log('afterSelectionChange(selectedItems)', selectedItems);
 		},

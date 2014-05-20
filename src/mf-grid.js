@@ -4,9 +4,9 @@ var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._dat
 + '<div class="grid-header">'
 + '<div class="grid-header-content"></div>'
 + '</div>'
-+ '<div class="grid-body-content"></div>'
 + '<div class="grid-body overthrow">'
 + '<div class="grid-body-viewport-content">'
++ '<div class="grid-body-content"></div>'
 + '</div>'
 + '</div>'
 + '</div>';
@@ -29,7 +29,7 @@ var defaultHeaderRowTemplate = '<div class="grid-row">'
 
 var defaultRowTemplate = '<div'
 + ' mf-grid-row'
-+ ' ng-repeat="item in grid.visibleItems"'
++ ' ng-repeat="item in grid.visibleItems track by $index"'
 + ' ng-class="rowClass"'
 + ' class="grid-row">'
 + '<div ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
@@ -780,16 +780,18 @@ angular.module('mfGrid', [])
 		};
 
 		function updateOffsetTop() {
-			var top = grid.headerRowHeight - grid.renderedItemsBefore * grid.rowHeight;
+//			var top = grid.headerRowHeight - grid.renderedItemsBefore * grid.rowHeight;
+//
+//			if (isWindow) {
+//				top += grid.scrollTop;
+//			}
+//			if (!grid.snapping) {
+//				top -= grid.scrollTop % grid.rowHeight;
+//			}
+//
+//			$bodyContent[0].style.marginTop = top + 'px';
+			$bodyContent[0].style.marginTop = grid.pixelsBefore + 'px';
 
-			if (isWindow) {
-				top += grid.scrollTop;
-			}
-			if (!grid.snapping) {
-				top -= grid.scrollTop % grid.rowHeight;
-			}
-
-			$bodyContent[0].style.marginTop = top + 'px';
 //			$bodyContentWrapper[0].style.transform = 'translate(0px,' + top + 'px)';
 //			$bodyContentWrapper[0].style['-webkit-transform'] = 'translate(0px,' + top + 'px)';
 //			$bodyContentWrapper[0].style['-moz-transform'] = 'translate(0px,' + top + 'px)';
