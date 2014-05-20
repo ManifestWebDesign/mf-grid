@@ -42,6 +42,52 @@ var defaultRowTemplate = '<div'
 + ' class="grid-column"></div>'
 + '</div>';
 
+//var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
+//+ '<div class="grid-header">'
+//+ '<table class="grid-header-content-wrapper table">'
+//+ '<thead class="grid-header-content"></thead>'
+//+ '</table>'
+//+ '</div>'
+//+ '<div class="grid-body overthrow">'
+//+ '<div class="grid-body-viewport-content">'
+//+ '<table class="grid-body-content-wrapper table">'
+//+ '<tbody class="grid-body-content"></tbody>'
+//+ '</table>'
+//+ '</div>'
+//+ '</div>'
+//+ '</div>';
+//
+//var defaultHeaderRowTemplate = '<tr class="grid-row">'
+//+ '<th ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
+//+ '<input ng-if="grid.multiSelect" ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
+//+ '</th>'
+//+ '<th'
+//+ ' ng-repeat="column in grid.enabledColumns"'
+//+ ' ng-style="{ width: column.width }"'
+//+ ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
+//+ ' ng-click="headerColumnClick(column, $index)"'
+//+ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
+//+ '<div'
+//+ ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
+//+ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
+//+ '</th>'
+//+ '</tr>';
+//
+//var defaultRowTemplate = '<tr'
+//+ ' mf-grid-row'
+//+ ' ng-repeat="item in grid.visibleItems track by $index"'
+//+ ' ng-class="rowClass"'
+//+ ' class="grid-row">'
+//+ '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
+////+ '<span ng-show="isSelected" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
+//+ '<input ng-checked="isSelected" type="checkbox" />'
+//+ '</td>'
+//+ '<td mf-grid-column'
+//+ ' ng-repeat="column in grid.enabledColumns"'
+////+ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
+//+ ' class="grid-column"></td>'
+//+ '</tr>';
+
 jQuery.fn.isAutoHeight = function(){
     var originalHeight = this.height();
 	var $testEl = $('<div></div>').css({
@@ -802,7 +848,7 @@ angular.module('mfGrid', [])
 
 		function onScroll() {
 			$headerViewport[0].scrollLeft = bodyViewportElement.scrollLeft;
-			$bodyContent[0].style.marginLeft = -bodyViewportElement.scrollLeft + 'px';
+//			$bodyContent[0].style.marginLeft = -bodyViewportElement.scrollLeft + 'px';
 
 			if (isWindow) {
 				return;
