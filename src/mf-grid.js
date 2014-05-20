@@ -261,7 +261,8 @@ MfGridCtrl.prototype = {
 	$parse: null,
 	visibleItems: null,
 	virtualizationThreshold: 50,
-	virtualizationOverflow: 2,
+	virtualizationOverflow: 4,
+	virtualizationInterval: 2,
 	snapping: false,
 	itemsBefore: 0,
 	pixelsBefore: 0,
@@ -346,7 +347,7 @@ MfGridCtrl.prototype = {
 		}
 
 		var bleed = this.virtualizationOverflow;
-		this.itemsBefore -= this.itemsBefore % 2;
+		this.itemsBefore -= this.itemsBefore % this.virtualizationInterval;
 
 		var adjustment = Math.min(bleed, this.itemsBefore);
 		this.itemsBefore = this.itemsBefore - adjustment;
@@ -705,7 +706,7 @@ angular.module('mfGrid', [])
 				bodyViewportElement.style.marginTop = headerRowHeight + 'px';
 			}
 
-			$bodyViewportContent[0].style.width = $bodyContent[0].offsetWidth + 'px';
+//			$bodyViewportContent[0].style.width = $bodyContent[0].offsetWidth + 'px';
 
 			// detect scrollbar width
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
@@ -854,11 +855,12 @@ angular.module('mfGrid', [])
 				return;
 			}
 
-			var oldPixelsBefore = grid.pixelsBefore;
+			var oldPixelsBefore = grid.pixelsBefore,
+				oldVisibleItems = grid.visibleItems.length;
 			grid.setScrollTop(bodyViewportElement.scrollTop);
 			updateOffsetTop();
 
-			if (grid.pixelsBefore === oldPixelsBefore) {
+			if (grid.pixelsBefore === oldPixelsBefore && grid.visibleItems.length === oldVisibleItems) {
 				return;
 			}
 
@@ -871,12 +873,13 @@ angular.module('mfGrid', [])
 				return;
 			}
 
-			var oldPixelsBefore = grid.pixelsBefore;
-			var scrollTop = Math.max(0, window.scrollY - $el.offset().top);
+			var oldPixelsBefore = grid.pixelsBefore,
+				oldVisibleItems = grid.visibleItems.length,
+				scrollTop = Math.max(0, window.scrollY - $el.offset().top);
 			grid.setScrollTop(scrollTop);
 			updateOffsetTop();
 
-			if (grid.pixelsBefore === oldPixelsBefore) {
+			if (grid.pixelsBefore === oldPixelsBefore && grid.visibleItems.length === oldVisibleItems) {
 				return;
 			}
 

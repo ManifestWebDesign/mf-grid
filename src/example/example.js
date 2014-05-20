@@ -42,6 +42,7 @@ angular.module('app', [
 		headerRowHeight: 35,
 		virtualizationThreshold: 50,
 		virtualizationOverflow: 4,
+		virtualizationInterval: 2,
 		afterSelectionChange: function(selectedItems) {
 			console.log('afterSelectionChange(selectedItems)', selectedItems);
 		},
@@ -54,10 +55,10 @@ angular.module('app', [
 		},
 		columnDefs: [
 			{ displayName: 'Index', field: 'itemIndex', width: '75px', cellClass: 'custom-cell-class' },
-			{ displayName: 'Foo', field: 'foo', width: '75px' },
-			{ displayName: 'Bar', field: 'bar', width: '75px' },
-			{ displayName: 'Name', field: 'name', width: '100px' },
-			{ displayName: 'Foo', field: 'foo', width: '75px' },
+			{ displayName: 'Foo', field: 'foo' },
+			{ displayName: 'Bar', field: 'bar' },
+			{ displayName: 'Name', field: 'name' },
+			{ displayName: 'Foo', field: 'foo' },
 			{ displayName: 'Bar', field: 'bar', width: '75px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
