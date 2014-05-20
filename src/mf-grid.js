@@ -2,63 +2,11 @@
 
 var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
 + '<div class="grid-header">'
-+ '<table class="grid-header-content-wrapper table">'
-+ '<thead class="grid-header-content"></thead>'
-+ '</table>'
-+ '</div>'
-+ '<div class="grid-body overthrow">'
-+ '<div class="grid-body-viewport-content">'
-+ '<table class="grid-body-content-wrapper table">'
-+ '<tbody class="grid-body-content"></tbody>'
-+ '</table>'
-+ '</div>'
-+ '</div>'
-+ '</div>';
-
-var defaultHeaderRowTemplate = '<tr class="grid-row">'
-+ '<th ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
-+ '<input ng-if="grid.multiSelect" ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
-+ '</th>'
-+ '<th'
-+ ' ng-repeat="column in grid.enabledColumns"'
-+ ' ng-style="{ width: column.width }"'
-+ ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
-+ ' ng-click="headerColumnClick(column, $index)"'
-+ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
-+ '<div'
-+ ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
-+ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
-+ '</th>'
-+ '</tr>';
-
-var defaultRowTemplate = '<tr'
-+ ' mf-grid-row'
-+ ' ng-repeat="item in grid.visibleItems"'
-+ ' ng-class="rowClass"'
-+ ' class="grid-row">'
-+ '<td ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
-//+ '<span ng-show="isSelected" class="glyphicon glyphicon-ok-circle icon-ok-circle"></span>'
-+ '<input ng-checked="isSelected" type="checkbox" />'
-+ '</td>'
-+ '<td mf-grid-column'
-+ ' ng-repeat="column in grid.enabledColumns"'
-//+ ' class="grid-column">{{ column.getFilteredValue(item, $parent) }}</td>'
-+ ' class="grid-column"></td>'
-+ '</tr>';
-
-
-
-var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
-+ '<div class="grid-header">'
-+ '<div class="grid-header-content-wrapper table">'
 + '<div class="grid-header-content"></div>'
 + '</div>'
-+ '</div>'
++ '<div class="grid-body-content"></div>'
 + '<div class="grid-body overthrow">'
 + '<div class="grid-body-viewport-content">'
-+ '<div class="grid-body-content-wrapper table">'
-+ '<div class="grid-body-content"></div>'
-+ '</div>'
 + '</div>'
 + '</div>'
 + '</div>';
@@ -258,6 +206,7 @@ MfGridCtrl.prototype = {
 	_data: null,
 	columnDefs: null,
 	showSelectionCheckbox: false,
+	showHeaderRow: true,
 	enabledColumns: null,
 	selectedItems: null,
 	multiSelect: true,
@@ -266,7 +215,8 @@ MfGridCtrl.prototype = {
 	$parse: null,
 	visibleItems: null,
 	virtualizationThreshold: 50,
-	virtualizationOverflow: 3,
+	virtualizationOverflow: 2,
+	snapping: false,
 	itemsBefore: 0,
 	pixelsBefore: 0,
 	height: null,
@@ -328,7 +278,7 @@ MfGridCtrl.prototype = {
 		this.updateVisibleItems();
 	},
 	setScrollTop: function(scrollTop) {
-		this.scrollTop = scrollTop;
+		this.scrollTop = scrollTop || 0;
 		this.updateVisibleItems();
 	},
 	updateVisibleItems: function() {
@@ -338,20 +288,23 @@ MfGridCtrl.prototype = {
 			maxVisibleItems = Math.ceil(height / rowHeight);
 
 		this.totalHeight = totalItems * rowHeight;
-		this.itemsBefore = this.pixelsBefore = 0;
+		this.pixelsBefore = 0;
+
+		var itemsBeforeNoOverflow = this.itemsBefore = ~~(this.scrollTop / rowHeight);
 
 		if (totalItems <= maxVisibleItems || totalItems <= this.virtualizationThreshold) {
 			this.visibleItems = this._data;
+			this.itemsBefore = 0;
+			this.renderedItemsBefore = itemsBeforeNoOverflow;
 			return;
 		}
 
 		var bleed = this.virtualizationOverflow;
+		this.itemsBefore -= this.itemsBefore % 2;
 
-		var scrollTop = Math.max(this.scrollTop, 0),
-			itemsBefore = ~~(scrollTop / rowHeight),
-			adjustment = Math.min(bleed, itemsBefore);
-
-		this.itemsBefore = itemsBefore - adjustment;
+		var adjustment = Math.min(bleed, this.itemsBefore);
+		this.itemsBefore = this.itemsBefore - adjustment;
+		this.renderedItemsBefore = itemsBeforeNoOverflow - this.itemsBefore;
 		this.pixelsBefore = this.itemsBefore * rowHeight;
 
 		var end = Math.min(this.itemsBefore + maxVisibleItems + (bleed + adjustment), totalItems);
@@ -503,13 +456,13 @@ MfGridCtrl.prototype = {
 			return longestVal;
 		};
 
-		if (typeof column.width === 'undefined' || column.width === 'auto') {
+		if (typeof column.width === 'number') {
+			column.width += 'px';
+		} else if (typeof column.width === 'undefined' || column.width === 'auto') {
 			var longestVal = column.getLongestValue();
-			if (null !== longestVal && longestVal.length > 0) {
-				var font = $('table.grid-body-content-wrapper').css('font');
+			if (this._data && this._data.length > 0 && null !== longestVal && longestVal.length > 0) {
+				var font = $('.grid-body-content').css('font');
 				column.width = getStringWidth(longestVal, font) + 28 + 'px';
-			} else {
-				column.width = '50px';
 			}
 		}
 
@@ -595,13 +548,39 @@ angular.module('mfGrid', [])
 			$bodyViewport = $el.find('.grid-body'),
 			bodyViewportElement = $bodyViewport[0],
 			$bodyViewportContent = $el.find('.grid-body-viewport-content'),
-			$bodyContentWrapper = $bodyViewport.find('.grid-body-content-wrapper'),
-			$bodyContent = $bodyViewport.find('.grid-body-content'),
+			$bodyContent = $el.find('.grid-body-content'),
 			$dataGetter = $parse(grid.data),
 			scrollContainer = window;
 
 		if (!bodyViewportElement) {
 			throw new Error('.grid-body not found.');
+		}
+
+		function renderTo($element, template) {
+			$element.prepend(template);
+			$compile($element.contents())(scope);
+		}
+
+		if (!grid.rowTemplateUrl && !grid.rowTemplate) {
+			grid.rowTemplate = defaultRowTemplate;
+		}
+		if (grid.rowTemplate) {
+			renderTo($bodyContent, grid.rowTemplate);
+		} else {
+			$http.get(grid.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
+				renderTo($bodyContent, html);
+			});
+		}
+
+		if (!grid.headerRowTemplateUrl && !grid.headerRowTemplate) {
+			grid.headerRowTemplate = defaultHeaderRowTemplate;
+		}
+		if (grid.headerRowTemplate) {
+			renderTo($headerContent, grid.headerRowTemplate);
+		} else {
+			$http.get(grid.headerRowTemplateUrl, { cache: $templateCache }).success(function(html) {
+				renderTo($headerContent, html);
+			});
 		}
 
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
@@ -610,7 +589,9 @@ angular.module('mfGrid', [])
 			return $dataGetter(scope.$parent);
 		}, function(r) {
 			grid.setData(r);
-			updateHeight();
+			$timeout(function(){
+				updateHeight();
+			});
 		});
 
 		scope.$watchCollection('grid.columnDefs', function(newColumns, oldColumns) {
@@ -620,14 +601,30 @@ angular.module('mfGrid', [])
 		scope.$watchCollection('grid.selectedItems', function(){
 			grid.updateCheckAll();
 
-			if (grid.selectionChanged) {
-				grid.selectionChanged(grid.selectedItems);
+			if (grid.afterSelectionChange) {
+				grid.afterSelectionChange(grid.selectedItems);
 			}
 		});
 
 		scope.$watch('grid.multiSelect', function(){
 			grid.updateCheckAll();
 		});
+
+		grid.scrollToItem = function(item, duration) {
+			duration = duration || 0;
+			$timeout(function(){
+				var index = grid._data.indexOf(item);
+				if (index === -1) {
+					return;
+				}
+
+				$(scrollContainer).animate({
+					scrollTop: index * grid.rowHeight
+				}, duration);
+			});
+		};
+
+		var isWindow = false;
 
 		function updateHeight() {
 			var headerRowHeight = parseInt(grid.headerRowHeight, 10) || 0,
@@ -636,9 +633,11 @@ angular.module('mfGrid', [])
 			// make content match grid height
 			if ($el.isAutoHeight()) {
 				scrollContainer = window;
+				isWindow = true;
 				$bodyViewport.css('position', 'static');
 			} else {
 				scrollContainer = bodyViewportElement;
+				isWindow = false;
 				$bodyViewport.css({
 					position: 'absolute',
 					top: 0,
@@ -646,6 +645,10 @@ angular.module('mfGrid', [])
 					left: 0,
 					right: 0
 				});
+			}
+
+			if (!grid.showHeaderRow) {
+				headerRowHeight = 0;
 			}
 
 			// header row height
@@ -656,6 +659,8 @@ angular.module('mfGrid', [])
 				bodyViewportElement.style.marginTop = headerRowHeight + 'px';
 			}
 
+			$bodyViewportContent[0].style.width = $bodyContent[0].offsetWidth + 'px';
+
 			// detect scrollbar width
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
 				scope.scrollbarWidth = getScrollBarWidth();
@@ -665,7 +670,7 @@ angular.module('mfGrid', [])
 
 			// detect visible height of grid
 			var viewportHeight;
-			if (scrollContainer === window) {
+			if (isWindow) {
 				viewportHeight = $(window).height();
 				var top = $el.offset().top - window.scrollY;
 				if (top > 0) {
@@ -721,7 +726,6 @@ angular.module('mfGrid', [])
 			$bodyViewport = null;
 			bodyViewportElement = null;
 			$bodyViewportContent = null;
-			$bodyContentWrapper = null;
 			$bodyContent = null;
 			scope = null;
         });
@@ -775,51 +779,59 @@ angular.module('mfGrid', [])
 			}
 		};
 
-		var prevScrollTop = 0;
+		function updateOffsetTop() {
+			var top = grid.headerRowHeight - grid.renderedItemsBefore * grid.rowHeight;
+
+			if (isWindow) {
+				top += grid.scrollTop;
+			}
+			if (!grid.snapping) {
+				top -= grid.scrollTop % grid.rowHeight;
+			}
+
+			$bodyContent[0].style.marginTop = top + 'px';
+//			$bodyContentWrapper[0].style.transform = 'translate(0px,' + top + 'px)';
+//			$bodyContentWrapper[0].style['-webkit-transform'] = 'translate(0px,' + top + 'px)';
+//			$bodyContentWrapper[0].style['-moz-transform'] = 'translate(0px,' + top + 'px)';
+//			$bodyContentWrapper[0].style['-ms-transform'] = 'translate(0px,' + top + 'px)';
+		}
+
+		scope.$watch('grid.pixelsBefore', updateOffsetTop);
+
 		function onScroll() {
 			$headerViewport[0].scrollLeft = bodyViewportElement.scrollLeft;
+			$bodyContent[0].style.marginLeft = -bodyViewportElement.scrollLeft + 'px';
 
-			if (scrollContainer !== bodyViewportElement) {
+			if (isWindow) {
 				return;
 			}
-			var newScrollTop = bodyViewportElement.scrollTop,
-				threshold = 1,
-				min = prevScrollTop - grid.rowHeight * threshold,
-				max = prevScrollTop + grid.rowHeight * threshold;
 
-			if (newScrollTop >= min && newScrollTop <= max) {
+			var oldPixelsBefore = grid.pixelsBefore;
+			grid.setScrollTop(bodyViewportElement.scrollTop);
+			updateOffsetTop();
+
+			if (grid.pixelsBefore === oldPixelsBefore) {
 				return;
 			}
-			prevScrollTop = newScrollTop;
 
-			grid.setScrollTop(newScrollTop);
-//			$bodyContentWrapper[0].style.top = grid.pixelsBefore + 'px';
-			$bodyContentWrapper[0].style.transform = 'translate(0px,' + grid.pixelsBefore + 'px)';
-			$bodyContentWrapper[0].style['-webkit-transform'] = 'translate(0px,' + grid.pixelsBefore + 'px)';
-			$bodyContentWrapper[0].style['-moz-transform'] = 'translate(0px,' + grid.pixelsBefore + 'px)';
-			$bodyContentWrapper[0].style['-ms-transform'] = 'translate(0px,' + grid.pixelsBefore + 'px)';
 			scope.$digest();
 		}
 		bodyViewportElement.addEventListener('scroll', onScroll);
 
 		function onWindowScroll() {
-			if (scrollContainer !== window) {
+			if (!isWindow) {
 				return;
 			}
 
-			var newScrollTop = Math.max(0, window.scrollY - $el.offset().top),
-				threshold = 1,
-				min = prevScrollTop - grid.rowHeight * threshold,
-				max = prevScrollTop + grid.rowHeight * threshold;
+			var oldPixelsBefore = grid.pixelsBefore;
+			var scrollTop = Math.max(0, window.scrollY - $el.offset().top);
+			grid.setScrollTop(scrollTop);
+			updateOffsetTop();
 
-			if (newScrollTop >= min && newScrollTop <= max) {
+			if (grid.pixelsBefore === oldPixelsBefore) {
 				return;
 			}
 
-			prevScrollTop = newScrollTop;
-
-			grid.setScrollTop(newScrollTop);
-			$bodyContentWrapper[0].style.top = grid.pixelsBefore + 'px';
 			scope.$digest();
 		}
 
@@ -865,33 +877,6 @@ angular.module('mfGrid', [])
 			grid.selectItem(getItem(angular.element(this)), this.checked);
 			scope.$apply();
 		});
-
-		function renderTo($element, template) {
-			$element.html(template);
-			$compile($element.contents())(scope);
-		}
-
-		if (!grid.rowTemplateUrl && !grid.rowTemplate) {
-			grid.rowTemplate = defaultRowTemplate;
-		}
-		if (grid.rowTemplate) {
-			renderTo($bodyContent, grid.rowTemplate);
-		} else {
-			$http.get(grid.rowTemplateUrl, { cache: $templateCache }).success(function(html) {
-				renderTo($bodyContent, html);
-			});
-		}
-
-		if (!grid.headerRowTemplateUrl && !grid.headerRowTemplate) {
-			grid.headerRowTemplate = defaultHeaderRowTemplate;
-		}
-		if (grid.headerRowTemplate) {
-			renderTo($headerContent, grid.headerRowTemplate);
-		} else {
-			$http.get(grid.headerRowTemplateUrl, { cache: $templateCache }).success(function(html) {
-				renderTo($headerContent, html);
-			});
-		}
 	};
 
 	return {
@@ -929,9 +914,14 @@ angular.module('mfGrid', [])
 				var itemIndex = grid.itemsBefore + scope.$index;
 				scope.itemIndex = itemIndex;
 //				$el[0].style.top = top + 'px';
-				scope.rowClass['grid-row-odd'] = itemIndex % 2 === 0;
-				scope.rowClass['grid-row-even'] = itemIndex % 2 === 1;
 			});
+
+			scope.rowClass = {};
+			if (scope.$index % 2 === 0) {
+				$el.addClass('grid-row-odd');
+			} else {
+				$el.addClass('grid-row-even');
+			}
 
 			scope.$watch(function(){
 				return grid.isItemSelected(scope.item);
@@ -939,8 +929,6 @@ angular.module('mfGrid', [])
 				scope.isSelected = isSelected;
 				scope.rowClass['grid-row-selected'] = isSelected;
 			});
-
-			scope.rowClass = {};
 		}
 	};
 }])

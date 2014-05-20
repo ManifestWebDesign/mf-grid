@@ -2,7 +2,6 @@
 	position: relative;
 	background: #fff;
 	overflow: hidden;
-	min-height: 200px;
 	min-width: 100px;
 }
 
@@ -16,40 +15,37 @@
 
 .grid-container .table {
 	margin: 0;
+	width: auto;
 }
 
 .grid-header {
 	position: absolute;
-	background: #fff;
+	background: #eee;
 	top: 0;
 	right: 0;
 	left: 0;
 	overflow: hidden;
 	border-bottom: 1px solid #ddd;
-	z-index: 50;
+	z-index: 5;
 }
 
 .grid-header .grid-column {
 	border-bottom: none;
 	cursor: default;
-}
-
-.grid-body {
-	overflow: auto;
-}
-
-.grid-body-viewport-content {
-	position: relative;
-}
-
-.grid-body-content-wrapper {
-	position: absolute;
+	font-weight: bold;
 }
 
 .grid-container .grid-row, .grid-container .grid-column {
 	box-sizing: border-box;
 	overflow: hidden;
 	white-space: nowrap;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.grid-container .grid-row {
+	min-width: 100%;
+	cursor: pointer;
 }
 
 .grid-container .grid-column {
@@ -66,37 +62,49 @@
 .grid-container div.grid-column {
 	display: inline-block;
 	height: 100%;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
 }
 
 .grid-checkbox-column {
 	width: 35px;
 }
 
-.grid-body div.grid-row-even,
-.grid-body tr.grid-row-even td.grid-column {
+.grid-body {
+	background: none;
+	overflow: auto;
+}
+
+.grid-body-viewport-content {
+	background: none;
+	position: relative;
+}
+
+.grid-body-content {
+	position: absolute;
+}
+
+.grid-body-content div.grid-row-even,
+.grid-body-content tr.grid-row-even td.grid-column {
 	background: #f9f9f9;
 }
 
-.grid-body div.grid-row-odd,
-.grid-body tr.grid-row-odd td.grid-column {
+.grid-body-content div.grid-row-odd,
+.grid-body-content tr.grid-row-odd td.grid-column {
 	background: #fff;
 }
 
-.grid-body div.grid-row:first-child,
-.grid-body tr.grid-row:first-child td {
+.grid-body-content div.grid-row:first-child,
+.grid-body-content tr.grid-row:first-child td {
 	border-top-color: transparent;
 }
 
-.grid-body div.grid-row-selected,
-.grid-body tr.grid-row-selected td.grid-column {
+.grid-body-content div.grid-row-selected,
+.grid-body-content tr.grid-row-selected td.grid-column {
 	background: #ffc;
 }
 
-.grid-body .grid-row:hover .grid-column {
-	/*background: #0088cc;*/
-	cursor: pointer;
-	color: #000;
-	text-decoration: underline;
+.grid-body-content .grid-row:hover .grid-column {
+/*	color: #000;
+	text-decoration: underline;*/
 }

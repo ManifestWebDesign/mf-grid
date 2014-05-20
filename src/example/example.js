@@ -39,11 +39,11 @@ angular.module('app', [
 		rowHeight: 35,
 		multiSelect: true,
 		enableSorting: true,
-		headerRowHeight: 40,
+		headerRowHeight: 35,
 		virtualizationThreshold: 50,
-		virtualizationOverflow: 5,
-		selectionChanged: function(selectedItems) {
-			console.log('selectionChanged(selectedItems)', selectedItems);
+		virtualizationOverflow: 2,
+		afterSelectionChange: function(selectedItems) {
+			console.log('afterSelectionChange(selectedItems)', selectedItems);
 		},
 		headerColumnClick: function(column, index, asc) {
 			console.log('headerColumnClick(column, index, asc)', column, index, asc);
@@ -54,6 +54,12 @@ angular.module('app', [
 		},
 		columnDefs: [
 			{ displayName: 'Index', field: 'itemIndex', width: '75px', cellClass: 'custom-cell-class' },
+			{ displayName: 'Foo', field: 'foo', width: '75px' },
+			{ displayName: 'Bar', field: 'bar', width: '75px' },
+			{ displayName: 'Name', field: 'name', width: '100px' },
+			{ displayName: 'Foo', field: 'foo', width: '75px' },
+			{ displayName: 'Bar', field: 'bar', width: '75px' },
+			{ displayName: 'Name', field: 'name', width: '100px' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
 			{ displayName: 'Bar', field: 'bar', width: '75px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
