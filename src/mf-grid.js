@@ -738,16 +738,23 @@ angular.module('mfGrid', [])
 			updateHeight();
 			scope.$digest();
 		}
-
 		$win.on('resize', windowResize);
-		$win.on('scroll', onScroll);
+
+		function windowScroll() {
+			if (!isWindow) {
+				return;
+			}
+			onScroll();
+		}
+		$win.on('scroll', windowScroll);
+
 		scope.$on('$destroy', function() {
 			var id = grid.id;
 
 			// window event
 			try {
 				$win.off('resize', windowResize);
-				$win.off('scroll', onScroll);
+				$win.off('scroll', windowScroll);
 			} catch (e) {}
 
 			// scope methods
