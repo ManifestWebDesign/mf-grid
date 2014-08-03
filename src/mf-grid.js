@@ -40,20 +40,22 @@ var defaultRowTemplate = '<div'
 + ' class="grid-column"></div>'
 + '</div>';
 
-jQuery.fn.isAutoHeight = function(){
+jQuery.fn.isAutoHeight = function() {
+
 	var heightStyle = this[0].style.height,
 		maxHeightStyle = this[0].style.maxHeight;
-	if (
-		heightStyle && heightStyle.indexOf('px') !== -1
-		|| maxHeightStyle && maxHeightStyle.indexOf('px') !== -1
-	) {
+
+	if ((heightStyle && heightStyle.indexOf('px') !== -1)
+		|| (maxHeightStyle && maxHeightStyle.indexOf('px') !== -1)) {
 		return false;
 	}
+
     var originalHeight = this.height();
 	var $testEl = $('<div></div>').css({
 		clear: 'both',
 		height: originalHeight + 10
 	}).appendTo(this);
+
 	var newHeight = this.height();
     $testEl.remove();
     return newHeight > originalHeight;
@@ -228,7 +230,7 @@ MfGridCtrl.prototype = {
 	pixelsBefore: 0,
 	height: null,
 	viewportHeight: 0,
-	headerRowHeight: 35,
+	headerRowHeight: 0,
 	enableSorting: true,
 	rowHeight: 30,
 	scrollTop: 0,
@@ -683,8 +685,6 @@ angular.module('mfGrid', [])
 			} else {
 				bodyViewportElement.style.marginTop = headerRowHeight + 'px';
 			}
-
-//			$bodyViewportContent[0].style.width = $bodyContent[0].offsetWidth + 'px';
 
 			// detect scrollbar width
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
