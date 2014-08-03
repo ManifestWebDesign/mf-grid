@@ -55,7 +55,7 @@ Option |  Default Value | Definition
 afterSelectionChange | function (rowItem, event) {} | Callback for when you want to validate something after selection.
 checkboxCellTemplate | <div class=ngSelectionCell><input tabindex=-1 class=ngSelectionCheckbox type=checkbox ng-checked=row.selected /></div> | Checkbox cell template.
 checkboxHeaderTemplate | <input class=ngSelectionHeader type=checkbox ng-show=multiSelect ng-model=allSelected ng-change=toggleSelectAll(allSelected)/> | Checkbox header template.
-columnDefs | undefined | definitions of columns as an array [] |  if not defines columns are auto-generated.
+columnDefs | undefined | Definitions of columns as an array [] |  if not defines columns are auto-generated.
 data | [] | Data being displayed in the grid. Each item in the array is mapped to a row being displayed.
 enableSorting | true | Enables or disables sorting in grid.
 enableRowSelection | true | To be able to have selectable rows in grid.
@@ -65,8 +65,8 @@ multiSelect | true | Set this to false if you only want one item selected at a t
 rowHeight | 30 | Row height of rows in grid.
 rowTemplate | <div ng-style={ 'cursor': row.cursor } ng-repeat=col in renderedColumns ng-class=col.colIndex() | Row template
 selectAll | function (state) | Function that is appended to the specific grid options for users to programmatically set the selected value all of the rows to the state passed. | Yes=ngCell {{col.cellClass}}><div class=ngVerticalBar ng-style={height: rowHeight} ng-class={ ngVerticalBarVisible: !$last }>&nbsp;</div><div ng-cell></div></div> | Define a row Template to customize output.
-selectedItems | [] | all of the items selected in the grid. In single select mode there will only be one item in the array.
-selectItem | function (itemIndex, state) | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
+selectedItems | [] | All of the items selected in the grid. In single select mode there will only be one item in the array.
+selectItem | function (itemIndex, state) {} | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
 selectRow | function (rowIndex, state) | Function that is appended to the specific grid options for users to programmatically select the row regardless of the related entity.
 selectWithCheckboxOnly | false | Disable row selections by clicking on the row and only when the checkbox is clicked via rowClick
 showSelectionCheckbox | false | Row selection check boxes appear as the first column.
