@@ -48,23 +48,6 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 <div mf-grid="gridOpts"></div>
 ```
 
-var defaultHeaderRowTemplate = '<div class="grid-row">'
-+ '<div ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
-+ '<input ng-if="grid.multiSelect" ng-checked="grid.allItemsSelected" title="Select All" type="checkbox" class="check-all" />'
-+ '</div>'
-+ '<div'
-+ ' ng-repeat="column in grid.enabledColumns"'
-+ ' ng-style="{ width: column.width }"'
-+ ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
-+ ' ng-click="headerColumnClick(column, $index)"'
-+ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
-+ '<div'
-+ ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
-+ ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
-+ '</div>'
-+ '</div>';
-
-
 ## Options
 
 Option |  Default Value | Definition
