@@ -114,7 +114,7 @@
 
 .grid-body-content .grid-row:hover .grid-column-no-hover {
 	cursor: auto;
-	color: #000;
+	color: inherit;
 	text-decoration: none;
 }
 
