@@ -53,9 +53,9 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 Option |  Default Value | Definition
 ------ | -------------- | ---------
 afterSelectionChange | function (rowItem, event) {} | Callback for when you want to validate something after selection.
-checkboxCellTemplate | <div class=ngSelectionCell><input tabindex=-1 class=ngSelectionCheckbox type=checkbox ng-checked=row.selected /></div> | Checkbox cell template.
+checkboxCellTemplate | ```<div class=ngSelectionCell><input tabindex=-1 class=ngSelectionCheckbox type=checkbox ng-checked=row.selected /></div>``` | Checkbox cell template.
 checkboxHeaderTemplate | <input class=ngSelectionHeader type=checkbox ng-show=multiSelect ng-model=allSelected ng-change=toggleSelectAll(allSelected)/> | Checkbox header template.
-columnDefs | undefined | Definitions of columns as an array [] |  if not defines columns are auto-generated.
+columnDefs | undefined | Definitions of columns as an array []. If not defined columns are auto-generated from data.
 data | [] | Data being displayed in the grid. Each item in the array is mapped to a row being displayed.
 enableSorting | true | Enables or disables sorting in grid.
 enableRowSelection | true | To be able to have selectable rows in grid.
