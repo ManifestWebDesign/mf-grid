@@ -107,8 +107,15 @@
 }
 
 .grid-body-content .grid-row:hover .grid-column {
-/*	color: #000;
-	text-decoration: underline;*/
+	cursor: pointer;
+	color: #000;
+	text-decoration: underline;
+}
+
+.grid-body-content .grid-row:hover .grid-column-no-hover {
+	cursor: auto;
+	color: #000;
+	text-decoration: none;
 }
 
 .grid-container input {
