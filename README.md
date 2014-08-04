@@ -63,7 +63,6 @@ enableSorting | true | Enables or disables sorting in grid.
 headerColumnClick | null | Trigger this function when the header column is clicked. This overrides the default sorting functionality.
 headerRowHeight | 0 | The height of the header row in pixels.
 headerRowTemplate | See below | Define a header row template for further customization.
-itemsBefore | 0 |
 multiSelect | true | Set this to false if you only want one item selected at a time.
 rowClick | null | Function to trigger when the row clicks. If null, there will be no hover style on the rows.
 rowHeight | 30 | Row height of rows in grid.
@@ -71,11 +70,9 @@ rowTemplate | See below | Row template
 selectAll | See below | Function that is appended to the specific grid options for users to programmatically set the selected value all of the rows to the state passed. | Yes=ngCell {{col.cellClass}}><div class=ngVerticalBar ng-style={height: rowHeight} ng-class={ ngVerticalBarVisible: !$last }>&nbsp;</div><div ng-cell></div></div> | Define a row Template to customize output.
 selectedItems | [] | All of the items selected in the grid. In single select mode there will only be one item in the array.
 selectItem | See below | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
-selectRow | ```function (rowIndex, state) {}``` | Function that is appended to the specific grid options for users to programmatically select the row regardless of the related entity.
-selectWithCheckboxOnly | false | Disable row selections by clicking on the row and only when the checkbox is clicked via rowClick
 showHeaderRow | true | Control the visibility of the header row.
 showSelectionCheckbox | false | Row selection check boxes appear as the first column.
-sortInfo | ```{ fields: [], directions: [] }``` | Define a sortInfo object to specify a default sorting state. You can also observe this variable to utilize server-side sorting (see useExternalSorting). Syntax is sortInfo: { fields: ['fieldName1' , ' fieldName2'], directions: ['asc', 'desc']}. Directions are case-insensitive, via sortColumn and sortAsc
+sortInfo | { fields: [], directions: [] } | Define a sortInfo object to specify a default sorting state. Directions are case-insensitive.
 trackItemBy | null | Primary tracking column for row
 virtualizationInterval | 2 | Number of rows.
 virtualizationOverflow | 4 | Number of rows to virtualize outside of the viewport.
