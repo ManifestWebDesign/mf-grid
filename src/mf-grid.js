@@ -250,6 +250,7 @@ var MfGridCtrl = function MfGridCtrl($parse) {
  */
 MfGridCtrl.prototype = {
 	_data: null,
+	afterSelectionChange: null,
 	columnDefs: null,
 	showSelectionCheckbox: false,
 	showHeaderRow: true,

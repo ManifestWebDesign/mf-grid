@@ -50,29 +50,35 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 
 ## Options
 
+
 Option |  Default Value | Definition
 ------ | -------------- | ---------
-afterSelectionChange | function (rowItem, event) {} | Callback for when you want to validate something after selection.
+afterSelectionChange | ```function (rowItem, event) {}``` | Callback for when you want to validate something after selection.
 columnDefs | undefined | Definitions of columns as an array []. If not defined columns are auto-generated from data.
 data | [] | Data being displayed in the grid. Each item in the array is mapped to a row being displayed.
 enableSorting | true | Enables or disables sorting in grid.
-enableRowSelection | true | To be able to have selectable rows in grid.
-headerRowHeight | 32 | The height of the header row in pixels.
+headerColumnClick | null | Trigger this function when the header column is clicked. This overrides the default sorting functionality.
+headerRowHeight | 0 | The height of the header row in pixels.
 headerRowTemplate | see below | Define a header row template for further customization.
+itemsBefore | 0 |
 multiSelect | true | Set this to false if you only want one item selected at a time.
+rowClick | null | Function to trigger when the row clicks. If null, there will be no hover style on the rows.
 rowHeight | 30 | Row height of rows in grid.
 rowTemplate | see below | Row template
-selectAll | function (state) | Function that is appended to the specific grid options for users to programmatically set the selected value all of the rows to the state passed. | Yes=ngCell {{col.cellClass}}><div class=ngVerticalBar ng-style={height: rowHeight} ng-class={ ngVerticalBarVisible: !$last }>&nbsp;</div><div ng-cell></div></div> | Define a row Template to customize output.
+selectAll | see below | Function that is appended to the specific grid options for users to programmatically set the selected value all of the rows to the state passed. | Yes=ngCell {{col.cellClass}}><div class=ngVerticalBar ng-style={height: rowHeight} ng-class={ ngVerticalBarVisible: !$last }>&nbsp;</div><div ng-cell></div></div> | Define a row Template to customize output.
 selectedItems | [] | All of the items selected in the grid. In single select mode there will only be one item in the array.
-selectItem | function (itemIndex, state) {} | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
-selectRow | function (rowIndex, state) | Function that is appended to the specific grid options for users to programmatically select the row regardless of the related entity.
+selectItem | see below | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
+selectRow | ```function (rowIndex, state) {}``` | Function that is appended to the specific grid options for users to programmatically select the row regardless of the related entity.
 selectWithCheckboxOnly | false | Disable row selections by clicking on the row and only when the checkbox is clicked via rowClick
+showHeaderRow | true | Control the visibility of the header row.
 showSelectionCheckbox | false | Row selection check boxes appear as the first column.
-sortInfo | { fields: [], directions: [] } | Define a sortInfo object to specify a default sorting state. You can also observe this variable to utilize server-side sorting (see useExternalSorting). Syntax is sortInfo: { fields: ['fieldName1' , ' fieldName2'], directions: ['asc', 'desc']}. Directions are case-insensitive, via sortColumn and sortAsc
-useExternalSorting | false | Prevents the internal sorting from executing. The sortInfo object will be updated with the sorting information so you can handle sorting (see sortInfo) via headerColumnClick and column.sortFn
+sortInfo | ```{ fields: [], directions: [] }``` | Define a sortInfo object to specify a default sorting state. You can also observe this variable to utilize server-side sorting (see useExternalSorting). Syntax is sortInfo: { fields: ['fieldName1' , ' fieldName2'], directions: ['asc', 'desc']}. Directions are case-insensitive, via sortColumn and sortAsc
+trackItemBy | null | Primary tracking column for row
+virtualizationInterval | 2 | Number of rows.
+virtualizationOverflow | 4 | Number of rows to virtualize outside of the viewport.
 virtualizationThreshold | 50 | The threshold in rows at which to force row virtualization on.
 
-## Template Options
+## Template Options and functions
 
 #### rowTemplate
 ```
@@ -110,4 +116,44 @@ virtualizationThreshold | 50 | The threshold in rows at which to force row virtu
 		</div>
 	</div>
 </div>
+```
+
+#### selectAll
+```
+function(selected) {
+	if (!selected) {
+		this.allItemsSelected = false;
+		this.selectedItems.length = 0;
+		return;
+	}
+	for (var i = 0, l = this._data.length; i < l; ++i) {
+		this.selectedItems.push(this._data[i]);
+	}
+	this.allItemsSelected = true;
+}
+```
+
+#### selectItem
+```
+function(item, selected) {
+	if (this.multiSelect === false) {
+		this.selectedItems.length = 0;
+		this.selectedItems.push(item);
+		this.updateCheckAll();
+		return;
+	}
+
+	var index = this.selectedItems.indexOf(item),
+		isSelected = index !== -1;
+
+	if ((selected && isSelected) || (!selected && !isSelected)) {
+		return;
+	}
+	if (selected) {
+		this.selectedItems.push(item);
+	} else {
+		this.selectedItems.remove(index);
+	}
+	this.updateCheckAll();
+}
 ```
