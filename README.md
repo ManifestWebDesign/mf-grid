@@ -53,21 +53,21 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 
 Option |  Default Value | Definition
 ------ | -------------- | ---------
-afterSelectionChange | ```function (rowItem, event) {}``` | Callback for when you want to validate something after selection.
+afterSelectionChange | null | Callback for when you want to validate something after selection.
 columnDefs | undefined | Definitions of columns as an array []. If not defined columns are auto-generated from data.
 data | [] | Data being displayed in the grid. Each item in the array is mapped to a row being displayed.
 enableSorting | true | Enables or disables sorting in grid.
 headerColumnClick | null | Trigger this function when the header column is clicked. This overrides the default sorting functionality.
 headerRowHeight | 0 | The height of the header row in pixels.
-headerRowTemplate | see below | Define a header row template for further customization.
+headerRowTemplate | See below | Define a header row template for further customization.
 itemsBefore | 0 |
 multiSelect | true | Set this to false if you only want one item selected at a time.
 rowClick | null | Function to trigger when the row clicks. If null, there will be no hover style on the rows.
 rowHeight | 30 | Row height of rows in grid.
-rowTemplate | see below | Row template
-selectAll | see below | Function that is appended to the specific grid options for users to programmatically set the selected value all of the rows to the state passed. | Yes=ngCell {{col.cellClass}}><div class=ngVerticalBar ng-style={height: rowHeight} ng-class={ ngVerticalBarVisible: !$last }>&nbsp;</div><div ng-cell></div></div> | Define a row Template to customize output.
+rowTemplate | See below | Row template
+selectAll | See below | Function that is appended to the specific grid options for users to programmatically set the selected value all of the rows to the state passed. | Yes=ngCell {{col.cellClass}}><div class=ngVerticalBar ng-style={height: rowHeight} ng-class={ ngVerticalBarVisible: !$last }>&nbsp;</div><div ng-cell></div></div> | Define a row Template to customize output.
 selectedItems | [] | All of the items selected in the grid. In single select mode there will only be one item in the array.
-selectItem | see below | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
+selectItem | See below | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
 selectRow | ```function (rowIndex, state) {}``` | Function that is appended to the specific grid options for users to programmatically select the row regardless of the related entity.
 selectWithCheckboxOnly | false | Disable row selections by clicking on the row and only when the checkbox is clicked via rowClick
 showHeaderRow | true | Control the visibility of the header row.
@@ -77,6 +77,13 @@ trackItemBy | null | Primary tracking column for row
 virtualizationInterval | 2 | Number of rows.
 virtualizationOverflow | 4 | Number of rows to virtualize outside of the viewport.
 virtualizationThreshold | 50 | The threshold in rows at which to force row virtualization on.
+
+<!--
+itemsBefore
+snapping
+pixelsBefore
+scrollTop
+-->
 
 ## Template Options and functions
 
