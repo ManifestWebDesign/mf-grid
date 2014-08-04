@@ -31,10 +31,9 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 			data: 'results',
 			headerRowHeight: 32,
 			columnDefs: [
-				{field: 'name',										width: 110,	displayName: 'Name'},
-				{field: "instrument === null ? '-' : instrument",	width: 110,	displayName: 'Instrument'},
+				{field: 'name', width: 110,	displayName: 'Name'},
+				{field: "instrument === null ? '-' : instrument", width: 110, displayName: 'Instrument'}
 			]
-
 		};
 
 		$scope.results = [
