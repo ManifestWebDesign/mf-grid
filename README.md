@@ -29,15 +29,19 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 	function($scope) {
 		$scope.gridOpts = {
 			data: 'results',
-			headerRowHeight: 35,
+			headerRowHeight: 32,
+			columnDefs: [
+				{field: 'name',										width: 110,	displayName: 'Name'},
+				{field: "instrument === null ? '-' : instrument",	width: 110,	displayName: 'Instrument'},
+			]
 
 		};
 
 		$scope.results = [
-			{name: 'John', instrument: 'Guitar'},
-			{name: 'Paul', instrument: 'Guitar'},
-			{name: 'George', instrument: 'Lead Guitar'},
-			{name: 'Ringo', instrument: 'Drums'}
+			{name: 'John',		instrument: 'Guitar'},
+			{name: 'Paul',		instrument: 'Bass and Guitar'},
+			{name: 'George',	instrument: 'Guitar'},
+			{name: 'Ringo',		instrument: null}
 		];
 	}]);
 ```
