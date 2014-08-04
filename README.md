@@ -57,7 +57,7 @@ angular.module("app", ["mfGrid"]).controller("MainCtrl", ["$scope",
 Option |  Default Value | Definition
 ------ | -------------- | ---------
 afterSelectionChange | null | Callback for when you want to validate something after selection.
-columnDefs | undefined | Definitions of columns as an array []. If not defined columns are auto-generated from data.
+columnDefs | null | Definitions of columns as an array []. If not defined columns are auto-generated from data.
 data | [] | Data being displayed in the grid. Each item in the array is mapped to a row being displayed.
 enableSorting | true | Enables or disables sorting in grid.
 headerColumnClick | null | Trigger this function when the header column is clicked. This overrides the default sorting functionality.
