@@ -503,7 +503,7 @@ MfGridCtrl.prototype = {
 				this.width += 'px';
 			} else if (typeof this.width === 'undefined' || this.width === 'auto') {
 				var longestVal = this.getLongestValue();
-				if (null !== longestVal && typeof longestVal != 'undefined' && longestVal.length > 0) {
+				if (null !== longestVal && typeof longestVal !== 'undefined' && longestVal.length > 0) {
 					var font = $('#' + grid.getCssPrefix() + ' .grid-body-content').css('font');
 					this.width = getStringWidth(longestVal, font) + 28 + 'px';
 				}
