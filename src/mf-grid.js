@@ -868,10 +868,10 @@ angular.module('mfGrid', [])
 			}
 			if ($this.is('.grid-checkbox-column')) {
 				e.stopImmediatePropagation();
-				grid.selectItem(item, !grid.isItemSelected(item));
+				grid.selectItem(item, !grid.isItemSelected(item), e);
 			} else {
 				if (grid.rowClick) {
-					grid.rowClick(item, grid._data.indexOf(item));
+					grid.rowClick(item, grid._data.indexOf(item), e);
 				}
 			}
 
@@ -881,7 +881,7 @@ angular.module('mfGrid', [])
 		$bodyContent.on('click', 'input:checkbox', function(e) {
 			e.stopImmediatePropagation();
 
-			grid.selectItem(getItem(angular.element(this)), this.checked);
+			grid.selectItem(getItem(angular.element(this)), this.checked, e);
 			scope.$apply();
 		});
 	};
