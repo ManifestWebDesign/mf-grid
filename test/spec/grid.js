@@ -3,7 +3,7 @@
 describe('Controller: GridCtrl', function() {
 
 	// load the controller's module
-	beforeEach(module('mf-grid'));
+	beforeEach(module('mfGrid'));
 
 	var grid;
 

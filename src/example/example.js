@@ -20,7 +20,7 @@ angular.module('app', [
 		'Brandon',
 		'Jaime'
 	];
-	for (var x = 0; x < 10000; ++x) {
+	for (var x = 0; x < 100000; ++x) {
 		$scope.data.push({
 			foo: 'bar' + x,
 			bar: x,
@@ -55,7 +55,7 @@ angular.module('app', [
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
 		},
 		columnDefs: [
-			{ displayName: 'Index', field: 'itemIndex', width: '75px', cellClass: 'custom-cell-class' },
+			{ displayName: 'Index', field: 'itemIndex', cellFilter: 'number : 0', width: '75px', cellClass: 'custom-cell-class' },
 			{ displayName: 'Foo', field: 'foo' },
 			{ displayName: 'Bar', field: 'bar' },
 			{ displayName: 'Name', field: 'name' },

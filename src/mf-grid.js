@@ -1,6 +1,7 @@
 (function(){
 
-var gridTemplate = '<div class="grid-container" ng-show="grid._data && grid._data.length">'
+var gridTemplate = '<div id="{{ grid.getCssPrefix() }}" class="grid-container" ng-show="grid._data && grid._data.length">'
++ '<div id="mf-grid-{{ grid._id }}-style"></div>'
 + '<div class="grid-header" ng-show="grid.showHeaderRow">'
 + '<div class="grid-header-content"></div>'
 + '</div>'
@@ -17,10 +18,9 @@ var defaultHeaderRowTemplate = '<div class="grid-row">'
 + '</div>'
 + '<div'
 + ' ng-repeat="column in grid.enabledColumns"'
-+ ' ng-style="{ width: column.width }"'
 + ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
 + ' ng-click="headerColumnClick(column, $index)"'
-+ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
++ ' class="grid-column {{ column.getHeaderClassName() }}">{{ column.displayName }}'
 + '<div'
 + ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
 + ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
@@ -63,7 +63,7 @@ var defaultRowTemplate = '<div'
 //+ '</th>'
 //+ '<th'
 //+ ' ng-repeat="column in grid.enabledColumns"'
-//+ ' ng-style="{ width: column.width }"'
+//+ ' ng-style="{ width: column.getWidth() }"'
 //+ ' ng-class="{ \'grid-column-sortable\': grid.enableSorting }"'
 //+ ' ng-click="headerColumnClick(column, $index)"'
 //+ ' class="grid-column {{ column.headerClass }}">{{ column.displayName }}'
@@ -89,6 +89,14 @@ var defaultRowTemplate = '<div'
 //+ '</tr>';
 
 jQuery.fn.isAutoHeight = function(){
+	var heightStyle = this[0].style.height,
+		maxHeightStyle = this[0].style.maxHeight;
+	if (
+		heightStyle && heightStyle.indexOf('px') !== -1
+		|| maxHeightStyle && maxHeightStyle.indexOf('px') !== -1
+	) {
+		return false;
+	}
     var originalHeight = this.height();
 	var $testEl = $('<div></div>').css({
 		clear: 'both',
@@ -98,32 +106,6 @@ jQuery.fn.isAutoHeight = function(){
     $testEl.remove();
     return newHeight > originalHeight;
 };
-
-function getScrollBarWidth() {
-    var inner = document.createElement('p');
-    inner.style.width = "100%";
-    inner.style.height = "200px";
-
-    var outer = document.createElement('div');
-    outer.style.position = "absolute";
-    outer.style.top = "0px";
-    outer.style.left = "0px";
-    outer.style.visibility = "hidden";
-    outer.style.width = "200px";
-    outer.style.height = "150px";
-    outer.style.overflow = "hidden";
-    outer.appendChild(inner);
-
-    document.body.appendChild(outer);
-    var w1 = inner.offsetWidth;
-    outer.style.overflow = 'scroll';
-    var w2 = inner.offsetWidth;
-    if (w1 === w2) w2 = outer.clientWidth;
-
-    document.body.removeChild(outer);
-
-    return (w1 - w2);
-}
 
 function getStringWidth(string, font) {
 	var f = font || '12px arial',
@@ -146,8 +128,6 @@ Array.prototype.remove = Array.prototype.remove || function(from, to) {
 	this.length = from < 0 ? this.length + from : from;
 	return this.push.apply(this, rest);
 };
-
-var variableRegEx = /^(?!(?:do|if|in|for|let|new|try|var|case|else|enum|eval|false|null|this|true|void|with|break|catch|class|const|super|throw|while|yield|delete|export|import|public|return|static|switch|typeof|default|extends|finally|package|private|continue|debugger|function|arguments|interface|protected|implements|instanceof)$)[$A-Z\_a-z]*$/;
 
 var sortService = {};
  // this takes an piece of data from the cell and tries to determine its type and what sorting
@@ -235,11 +215,12 @@ var sortService = {};
 var gridId = 1;
 
 var MfGridCtrl = function MfGridCtrl($parse) {
-	this.id = gridId;
-	gridId++;
+	this._id = gridId;
+	++gridId;
 	this.$parse = $parse;
 	this._data = [];
 	this.enabledColumns = [];
+	this.columns = [];
 	this.selectedItems = [];
 	this.visibleItems = [];
 	this.columnDefs = [];
@@ -249,10 +230,13 @@ var MfGridCtrl = function MfGridCtrl($parse) {
  * Controller
  */
 MfGridCtrl.prototype = {
+	_id: null,
 	_data: null,
+	_css: '',
 	columnDefs: null,
 	showSelectionCheckbox: false,
 	showHeaderRow: true,
+	columns: null,
 	enabledColumns: null,
 	selectedItems: null,
 	multiSelect: true,
@@ -500,54 +484,120 @@ MfGridCtrl.prototype = {
 			if (typeof $filteredValueGetter !== 'function') {
 				$filteredValueGetter = grid.$parse(this.field + ' | ' + this.cellFilter);
 			}
-			return $filteredValueGetter(item, grid.$scope);
+			return $filteredValueGetter(item, scope);
 		};
 
 		column.getLongestValue = function() {
-			if (!grid._data || !grid._data.length) {
-				return null;
-			}
 			var longestVal = this.displayName;
-			for (var x = 0, l = Math.min(grid._data.length, 50); x < l; ++x) {
-				var item = grid._data[x];
-				var value = this.getFilteredValue(item);
+
+			if (!grid._data || !grid._data.length) {
+				return longestVal;
+			}
+
+			var length = grid._data.length;
+			var rowsToCheck = 20;
+			var halfOfRows = rowsToCheck / 2;
+
+			var checkValue = function(item) {
+				var value = column.getFilteredValue(item);
 				if (value === null || typeof value === 'undefined' || typeof value.toString === 'undefined') {
-					continue;
+					return;
 				}
 				var stringVal = value.toString();
 				if (stringVal.length > longestVal.length) {
 					longestVal = stringVal;
 				}
+			};
+
+			for (var x = 0, l = Math.min(length, halfOfRows); x < l; ++x) {
+				checkValue(grid._data[x]);
+			}
+
+			if (length > halfOfRows) {
+				for (var x = length - 1; x > length - halfOfRows - 1; --x) {
+					checkValue(grid._data[x]);
+				}
 			}
 			return longestVal;
 		};
 
-		if (typeof column.width === 'number') {
-			column.width += 'px';
-		} else if (typeof column.width === 'undefined' || column.width === 'auto') {
-			var longestVal = column.getLongestValue();
-			if (this._data && this._data.length > 0 && null !== longestVal && longestVal.length > 0) {
-				var font = $('.grid-body-content').css('font');
-				column.width = getStringWidth(longestVal, font) + 28 + 'px';
+		column.getClassName = function() {
+			return 'mf-grid-column-' + this.index;
+		};
+
+		column.getHeaderClassName = function() {
+			var className = this.getClassName();
+			if (this.headerClass) {
+				className += ' ' + this.headerClass;
 			}
-		}
+			return className;
+		};
+
+		column.getCellClassName = function() {
+			var className = this.getClassName();
+			if (this.cellClass) {
+				className += ' ' + this.cellClass;
+			}
+			return className;
+		};
+
+		column.getWidth = function() {
+			if (typeof this.width === 'number') {
+				this.width += 'px';
+			} else if (typeof this.width === 'undefined' || this.width === 'auto') {
+				var longestVal = this.getLongestValue();
+				if (null !== longestVal && longestVal.length > 0) {
+					var font = $('#' + grid.getCssPrefix() + ' .grid-body-content').css('font');
+					this.width = getStringWidth(longestVal, font) + 28 + 'px';
+				}
+			}
+
+			return this.width;
+		};
 
 		return column;
 	},
-	setColumns: function(columns) {
+	setColumns: function(columnDefs) {
 		this.enabledColumns = [];
-		if (columns && columns.length) {
-			for (var i = 0, l = columns.length; i < l; ++i) {
-				var column = this.buildColumn(columns[i]);
+		this.columns = [];
+		if (columnDefs && columnDefs.length) {
+			for (var i = 0, l = columnDefs.length; i < l; ++i) {
+				var column = this.buildColumn(columnDefs[i]);
+				column.index = i;
+				this.columns.push(column);
 				if (column.visible) {
 					this.enabledColumns.push(column);
 				}
 			}
 		} else if (this._data.length > 0) {
+			var x = 0;
 			for (var col in this._data[0]) {
-				this.enabledColumns.push(this.buildColumn(col));
+				var column = this.buildColumn(col);
+				column.index = x;
+				this.columns.push(column);
+				this.enabledColumns.push(column);
+				++x;
 			}
 		}
+		this._css = this.getCss();
+	},
+	getCssPrefix: function() {
+		return 'mf-grid-' + this._id;
+	},
+	getCss: function() {
+		var prefix = '#' + this.getCssPrefix();
+		var entries = [];
+		var columns = this.columns;
+		if (columns && columns.length) {
+			for (var i = 0, l = columns.length; i < l; ++i) {
+				var column = columns[i];
+				entries.push(prefix + ' .' + column.getClassName() + ' {\n\
+width: ' + column.getWidth() + ';\n\
+}');
+			}
+		}
+
+		return entries.join('\n');
 	},
 	setData: function(data) {
 		var resort = this._data !== data || this._oldLength !== data.length;
@@ -609,22 +659,66 @@ angular.module('mfGrid', [])
 
 	function linker(scope, $el, attrs, grid) {
 
-		var $headerViewport = $el.find('.grid-header'),
+		function getScrollBarWidth() {
+			var inner = document.createElement('p');
+			inner.style.width = "100%";
+			inner.style.height = "200px";
+
+			var outer = document.createElement('div');
+			outer.style.position = "absolute";
+			outer.style.top = "0px";
+			outer.style.left = "0px";
+			outer.style.visibility = "hidden";
+			outer.style.width = "200px";
+			outer.style.height = "150px";
+			outer.style.overflow = "hidden";
+			outer.appendChild(inner);
+
+			document.body.appendChild(outer);
+			var w1 = inner.offsetWidth;
+			outer.style.overflow = 'scroll';
+			var w2 = inner.offsetWidth;
+			if (w1 === w2) w2 = outer.clientWidth;
+
+			document.body.removeChild(outer);
+
+			return (w1 - w2);
+		}
+
+		function debounce(func, wait, immediate) {
+			var timeout;
+			return function() {
+				var context = this, args = arguments;
+				var later = function() {
+					timeout = null;
+					if (!immediate) func.apply(context, args);
+				};
+				var callNow = immediate && !timeout;
+				clearTimeout(timeout);
+				timeout = setTimeout(later, wait);
+				if (callNow) func.apply(context, args);
+			};
+		}
+
+		function renderTo($element, template) {
+			$element.prepend(template);
+			$compile($element.contents())(scope);
+		}
+
+		var $ = angular.element,
+			$headerViewport = $el.find('.grid-header'),
 			$headerContent = $headerViewport.find('.grid-header-content'),
 			$bodyViewport = $el.find('.grid-body'),
 			bodyViewportElement = $bodyViewport[0],
 			$bodyViewportContent = $el.find('.grid-body-viewport-content'),
 			$bodyContent = $el.find('.grid-body-content'),
 			$dataGetter = $parse(grid.data),
-			scrollContainer = window;
+			scrollBarWidth = getScrollBarWidth(),
+			scrollContainer = window,
+			$win = $($window);
 
 		if (!bodyViewportElement) {
 			throw new Error('.grid-body not found.');
-		}
-
-		function renderTo($element, template) {
-			$element.prepend(template);
-			$compile($element.contents())(scope);
 		}
 
 		if (!grid.rowTemplateUrl && !grid.rowTemplate) {
@@ -670,10 +764,17 @@ angular.module('mfGrid', [])
 			if (grid.afterSelectionChange) {
 				grid.afterSelectionChange(grid.selectedItems);
 			}
+
+			scope.$broadcast('mf-grid-selection-change', grid.selectedItems);
 		});
 
 		scope.$watch('grid.multiSelect', function(){
 			grid.updateCheckAll();
+		});
+
+		scope.$watch('grid._css', function(css) {
+			var styleHolder = angular.element('#mf-grid-' + grid._id + '-style')[0];
+			styleHolder.innerHTML = '<style>' + css + '</style>';
 		});
 
 		grid.scrollToItem = function(item, duration) {
@@ -692,7 +793,7 @@ angular.module('mfGrid', [])
 
 		var isWindow = false;
 
-		function updateHeight() {
+		var updateHeight = function() {
 			var headerRowHeight = parseInt(grid.headerRowHeight, 10) || 0,
 				$headerRow = $headerViewport.find('.grid-row');
 
@@ -729,7 +830,7 @@ angular.module('mfGrid', [])
 
 			// detect scrollbar width
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
-				scope.scrollbarWidth = getScrollBarWidth();
+				scope.scrollbarWidth = scrollBarWidth;
 			} else {
 				scope.scrollbarWidth = 0;
 			}
@@ -737,7 +838,7 @@ angular.module('mfGrid', [])
 			// detect visible height of grid
 			var viewportHeight;
 			if (isWindow) {
-				viewportHeight = $(window).height();
+				viewportHeight = $win.height();
 				var top = $el.offset().top - window.scrollY;
 				if (top > 0) {
 					viewportHeight -= top;
@@ -746,30 +847,27 @@ angular.module('mfGrid', [])
 				viewportHeight = bodyViewportElement.offsetHeight;
 			}
 			grid.setViewportHeight(viewportHeight);
-		}
+		};
 
-		scope.$watch(function(){
-			return scrollContainer.offsetHeight;
-		}, updateHeight);
+		scope.$watch(debounce(function() {
+			return $el.height();
+		}, 200), updateHeight);
 
-		var $win = angular.element($window);
-		function windowResize(){
+		var windowResize = debounce(function(){
 			updateHeight();
 			scope.$digest();
-		}
+		}, 50);
 		$win.on('resize', windowResize);
 
-		function windowScroll() {
+		var windowScroll = debounce(function() {
 			if (!isWindow) {
 				return;
 			}
 			onScroll();
-		}
+		}, 10);
 		$win.on('scroll', windowScroll);
 
 		scope.$on('$destroy', function() {
-			var id = grid.id;
-
 			// window event
 			try {
 				$win.off('resize', windowResize);
@@ -783,6 +881,7 @@ angular.module('mfGrid', [])
 			grid._data = null;
 			grid.selectedItems = null;
 			grid.visibleItems = null;
+			grid.columns = null;
 			grid.columnDefs = null;
 			grid.enabledColumns = null;
 			grid.$parse = null;
@@ -803,7 +902,7 @@ angular.module('mfGrid', [])
 			scope = null;
         });
 
-		scope.$watch('grid.height', function(height){
+		scope.$watch('grid.height', debounce(function(height){
 			if (typeof height !== 'undefined' && height !== '' && height !== null) {
 				$el.css('height', height);
 			}
@@ -811,27 +910,22 @@ angular.module('mfGrid', [])
 			$timeout(function(){
 				updateHeight();
 			});
-		});
+		}, 50));
 
-		scope.$watch('grid.scrollbarWidth', function(width){
-			if (typeof width === 'undefined' || width === null) {
-				return;
-			}
-			$headerViewport.css('margin-right', width + 'px');
-		});
+		$headerViewport.css('margin-right', scrollBarWidth + 'px');
 
-		scope.$watch('grid.totalHeight', function(height){
+		scope.$watch('grid.totalHeight', debounce(function(height){
 			if (typeof height === 'undefined' || height === null) {
 				return;
 			}
 			$bodyViewportContent.css('height', height + 'px');
-		});
+		}, 50));
 
-		scope.$watch('grid.headerRowHeight', function(height){
+		scope.$watch('grid.headerRowHeight', debounce(function(height){
 			$timeout(function(){
 				updateHeight();
 			});
-		});
+		}, 50));
 
 		scope.headerColumnClick = function(column, index) {
 			if (!grid.enableSorting) {
@@ -865,15 +959,18 @@ angular.module('mfGrid', [])
 //			$bodyContent[0].style.marginTop = top + 'px';
 			$bodyContent[0].style.marginTop = grid.pixelsBefore + 'px';
 
-//			$bodyContentWrapper[0].style.transform = 'translate(0px,' + top + 'px)';
-//			$bodyContentWrapper[0].style['-webkit-transform'] = 'translate(0px,' + top + 'px)';
-//			$bodyContentWrapper[0].style['-moz-transform'] = 'translate(0px,' + top + 'px)';
-//			$bodyContentWrapper[0].style['-ms-transform'] = 'translate(0px,' + top + 'px)';
+//			$bodyContent[0].style.transform = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+//			$bodyContent[0].style['-webkit-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+//			$bodyContent[0].style['-moz-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+//			$bodyContent[0].style['-ms-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
 		}
 
 		scope.$watch('grid.pixelsBefore', updateOffsetTop);
+		scope.$watch('grid.itemsBefore', function(itemsBefore) {
+			scope.$broadcast('mf-grid-items-before-change', itemsBefore);
+		});
 
-		function onScroll() {
+		var onScroll = function() {
 			$headerViewport[0].scrollLeft = bodyViewportElement.scrollLeft;
 //			$bodyContent[0].style.marginLeft = -bodyViewportElement.scrollLeft + 'px';
 
@@ -887,15 +984,16 @@ angular.module('mfGrid', [])
 			}
 
 			grid.setScrollTop(scrollTop);
-			updateOffsetTop();
 
 			if (grid.pixelsBefore === oldPixelsBefore && grid.visibleItems.length === oldVisibleItems) {
 				return;
 			}
 
+			updateOffsetTop();
 			scope.$digest();
-		}
-		bodyViewportElement.addEventListener('scroll', onScroll);
+		};
+
+		$bodyViewport.on('scroll touchstart touchend touchmove mousewheel touchcancel gesturestart gestureend gesturechange orientationchange', onScroll);
 
 		function getItem($checkbox) {
 			var scope = $checkbox.closest('.grid-row').scope();
@@ -911,11 +1009,11 @@ angular.module('mfGrid', [])
 		});
 
 		$bodyContent.on('click', '.grid-column', function(e) {
-			if (angular.element(e.target).is('input:checkbox')) {
+			if ($(e.target).is('input:checkbox')) {
 				return;
 			}
 
-			var $this = angular.element(this),
+			var $this = $(this),
 				item = getItem($this);
 
 			if (!item) {
@@ -936,7 +1034,7 @@ angular.module('mfGrid', [])
 		$bodyContent.on('click', 'input:checkbox', function(e) {
 			e.stopImmediatePropagation();
 
-			grid.selectItem(getItem(angular.element(this)), this.checked);
+			grid.selectItem(getItem($(this)), this.checked);
 			scope.$apply();
 		});
 	};
@@ -970,12 +1068,9 @@ angular.module('mfGrid', [])
 			var grid = scope.grid;
 			$el[0].style.height = grid.rowHeight + 'px';
 
-			scope.$watch(function(){
-				return grid.itemsBefore;
-			}, function(){
-				var itemIndex = grid.itemsBefore + scope.$index;
-				scope.itemIndex = itemIndex;
-//				$el[0].style.top = top + 'px';
+			scope.itemIndex = (grid.itemsBefore || 0) + scope.$index;
+			scope.$on('mf-grid-items-before-change', function() {
+				scope.itemIndex = grid.itemsBefore + scope.$index;
 			});
 
 			scope.rowClass = {};
@@ -985,9 +1080,8 @@ angular.module('mfGrid', [])
 				$el.addClass('grid-row-even');
 			}
 
-			scope.$watch(function(){
-				return grid.isItemSelected(scope.item);
-			}, function(isSelected){
+			scope.$on('mf-grid-selection-change', function() {
+				var isSelected = grid.isItemSelected(scope.item);
 				scope.isSelected = isSelected;
 				scope.rowClass['grid-row-selected'] = isSelected;
 			});
@@ -999,10 +1093,8 @@ angular.module('mfGrid', [])
 	return {
 		restrict: 'A',
 		link: function(scope, $el, attrs) {
-			$el[0].style.width = scope.column.width;
-			if (scope.column.cellClass) {
-				$el[0].className += ' ' + scope.column.cellClass;
-			}
+			$el[0].className += ' ' + scope.column.getCellClassName();
+
 			scope.$watch(function(){
 				return scope.column.getFilteredValue(scope.item, scope.$parent);
 			}, function(value){

@@ -27,14 +27,14 @@ module.exports = function (grunt) {
 
     // Watches files for changes and runs tasks based on the changed files
     watch: {
-      js: {
-        files: ['{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js'],
-        tasks: ['newer:jshint:all']
-      },
-      jsTest: {
-        files: ['test/spec/{,*/}*.js'],
-        tasks: ['newer:jshint:test', 'karma:unit']
-      },
+//      js: {
+//        files: ['{.tmp,<%= yeoman.app %>}/{,*/}*.js'],
+//        tasks: ['newer:jshint:all']
+//      },
+//      jsTest: {
+//        files: ['test/spec/{,*/}*.js'],
+//        tasks: ['newer:jshint:test', 'karma:unit']
+//      },
 	  e2eTest: {
 		  files: ['test/e2e/{,*/}*.js'],
 		  tasks: ['karma:e2e']
@@ -64,7 +64,7 @@ module.exports = function (grunt) {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
         hostname: 'localhost',
-        livereload: 35729
+        livereload: 35739
       },
       livereload: {
         options: {
@@ -99,8 +99,7 @@ module.exports = function (grunt) {
         reporter: require('jshint-stylish')
       },
       all: [
-        'Gruntfile.js',
-        '<%= yeoman.app %>/scripts/{,*/}*.js'
+        '<%= yeoman.app %>/{,*/}*.js'
       ],
       test: {
         options: {
@@ -146,7 +145,7 @@ module.exports = function (grunt) {
       dist: {
         files: {
           src: [
-            '<%= yeoman.dist %>/scripts/{,*/}*.js',
+            '<%= yeoman.dist %>/{,*/}*.js',
             '<%= yeoman.dist %>/styles/{,*/}*.css',
             '<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
             '<%= yeoman.dist %>/styles/fonts/*'
@@ -299,8 +298,8 @@ module.exports = function (grunt) {
     // uglify: {
     //   dist: {
     //     files: {
-    //       '<%= yeoman.dist %>/scripts/scripts.js': [
-    //         '<%= yeoman.dist %>/scripts/scripts.js'
+    //       '<%= yeoman.dist %>/scripts.js': [
+    //         '<%= yeoman.dist %>/scripts.js'
     //       ]
     //     }
     //   }
@@ -366,7 +365,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('default', [
-    'newer:jshint',
+//    'newer:jshint',
     'test',
     'build'
   ]);
