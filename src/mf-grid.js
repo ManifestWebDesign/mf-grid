@@ -937,7 +937,9 @@ angular.module('mfGrid', [])
 			scope.$digest();
 		};
 
-		$bodyViewport.on('scroll touchstart touchend touchmove mousewheel touchcancel gesturestart gestureend gesturechange orientationchange', onScroll);
+		bodyViewportElement.addEventListener('scroll', onScroll);
+		bodyViewportElement.addEventListener('touchmove', onScroll);
+		bodyViewportElement.addEventListener('gesturechange', onScroll);
 
 		function getItem($checkbox) {
 			var scope = $checkbox.closest('.grid-row').scope();
