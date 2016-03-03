@@ -29,7 +29,22 @@
 
 		<!-- Add your site or application content here -->
 		<div class="container" ng-controller="MainCtrl">
-			<input ng-model="filterText" class="filter-text" placeholder="Search..." />
+
+			<div class="filters">
+				<input ng-model="filterText" class="filter-text" placeholder="Search..." />
+				&nbsp;
+				<label>
+					<input type="checkbox" ng-model="gridOpts.showHeaderRow" /> Show Header
+				</label>
+				&nbsp;
+				<label>
+					<input type="checkbox" ng-model="gridOpts.showSelectionCheckbox" /> Show Checkboxes
+				</label>
+<!--				&nbsp;
+				<label>
+					<input type="checkbox" ng-model="gridOpts.snapping" /> Snapping
+				</label>-->
+			</div>
 			<div mf-grid="gridOpts" class="custom-grid"></div>
 		</div>
 

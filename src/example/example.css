@@ -18,12 +18,15 @@ body {
 	right: 50px;
 }
 
-input.filter-text {
-	height: 25px;
+.filters {
 	top: 25px;
 	left: 50px;
-	padding: 5px;
 	position: absolute;
-	border: 1px solid #ccc;
 	z-index: 500;
+}
+
+input.filter-text {
+	height: 25px;
+	padding: 5px;
+	border: 1px solid #ccc;
 }

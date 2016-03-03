@@ -18,7 +18,10 @@ angular.module('app', [
 		'Cole',
 		'Nathan',
 		'Brandon',
-		'Jaime'
+		'Jaime',
+		'Frank',
+		'Joe',
+		'Billy'
 	];
 	for (var x = 0; x < 10000; ++x) {
 		$scope.data.push({
@@ -47,7 +50,8 @@ angular.module('app', [
 		rowHeight: 35,
 		multiSelect: true,
 		enableSorting: true,
-		headerRowHeight: 35,
+//		showHeaderRow: true,
+//		headerRowHeight: 35,
 		virtualizationThreshold: 50,
 		virtualizationOverflow: 4,
 		virtualizationInterval: 2,

@@ -206,7 +206,7 @@ MfGridCtrl.prototype = {
 	pixelsBefore: 0,
 	height: null,
 	viewportHeight: 0,
-	headerRowHeight: 0,
+	headerRowHeight: 'auto',
 	enableSorting: true,
 	rowHeight: 30,
 	scrollTop: 0,
@@ -704,10 +704,8 @@ angular.module('mfGrid', [])
 			return $dataGetter(scope.$parent);
 		}, function(rows) {
 			grid.setData(rows);
-			$timeout(function(){
-				updateHeight();
-				scope.$broadcast('mf-grid-data-change', rows);
-			});
+			updateLayout();
+			scope.$broadcast('mf-grid-data-change', rows);
 		});
 
 		scope.$watchCollection('grid.columnDefs', function(newColumns, oldColumns) {
@@ -749,9 +747,42 @@ angular.module('mfGrid', [])
 
 		var isWindow = false;
 
+		var updateHeaderHeight = function() {
+			// get the grid option explicitly setting the header height
+			if (grid.headerRowHeight === 0 || grid.headerRowHeight === '0px' || grid.showHeaderRow === false) {
+				grid.showHeaderRow = false;
+				bodyViewportElement.style.marginTop = '0px';
+				return;
+			}
+
+			// auto calculate
+			if (typeof grid.headerRowHeight === 'undefined' || grid.headerRowHeight === 'auto' || grid.headerRowHeight === null) {
+				grid.headerRowHeight = 'auto';
+				$headerViewport.removeClass('ng-hide').show();
+				var offset = $headerViewport[0].offsetHeight;
+				bodyViewportElement.style.marginTop = offset + 'px';
+				return;
+			}
+
+			// explicit integer value
+			var headerRowHeight = parseInt(grid.headerRowHeight, 10);
+			if (isNaN(headerRowHeight)) {
+				grid.showHeaderRow = false;
+				bodyViewportElement.style.marginTop = '0px';
+				return;
+			}
+			// get the "row" of "columns" inside the main header element
+			var $headerRow = $headerViewport.find('.grid-row');
+			if ($headerRow.length !== 0) {
+				$headerRow[0].style.height = headerRowHeight + 'px';
+				bodyViewportElement.style.marginTop = headerRowHeight + 'px';
+			}
+		};
+
 		var updateHeight = function() {
-			var headerRowHeight = parseInt(grid.headerRowHeight, 10) || 0,
-				$headerRow = $headerViewport.find('.grid-row');
+			if (typeof grid.height !== 'undefined' && grid.height !== '' && grid.height !== null) {
+				$el.css('height', grid.height);
+			}
 
 			// make content match grid height
 			if ($el.isAutoHeight()) {
@@ -768,26 +799,29 @@ angular.module('mfGrid', [])
 					left: 0,
 					right: 0
 				});
+				$headerViewport.css({
+					position: '',
+					top: '',
+					left: '',
+					width: ''
+				});
 			}
+		};
 
-			if (!grid.showHeaderRow) {
-				headerRowHeight = 0;
-			}
-
-			// header row height
-			if ($headerRow.length !== 0) {
-				$headerRow[0].style.height = headerRowHeight + 'px';
-				bodyViewportElement.style.marginTop = $headerViewport[0].offsetHeight || headerRowHeight + 'px';
-			} else {
-				bodyViewportElement.style.marginTop = headerRowHeight + 'px';
-			}
-
-			// detect scrollbar width
+		var checkScrollbar = function() {
+			// detect scrollbar
 			if (bodyViewportElement.scrollHeight > bodyViewportElement.offsetHeight) {
 				scope.scrollbarWidth = scrollBarWidth;
 			} else {
 				scope.scrollbarWidth = 0;
 			}
+			$headerViewport.css('margin-right', scope.scrollbarWidth + 'px');
+		};
+
+		var updateLayout = debounce(function() {
+			updateHeaderHeight();
+			updateHeight();
+			checkScrollbar();
 
 			// detect visible height of grid
 			var viewportHeight;
@@ -801,84 +835,27 @@ angular.module('mfGrid', [])
 				viewportHeight = bodyViewportElement.offsetHeight;
 			}
 			grid.setViewportHeight(viewportHeight);
-		};
 
-		scope.$watch(debounce(function() {
-			return $el.height();
-		}, 200), updateHeight);
-
-		var windowResize = debounce(function(){
-			updateHeight();
 			scope.$digest();
-		}, 50);
-		$win.on('resize', windowResize);
+		}, 20);
 
-		var windowScroll = debounce(function() {
-			if (!isWindow) {
-				return;
-			}
-			onScroll();
-		}, 10);
-		$win.on('scroll', windowScroll);
+		scope.$watch(function() {
+			return [
+				grid.height,
+				+ grid.showHeaderRow,
+				+ grid.headerRowHeight,
+				+ $headerViewport[0].offsetHeight,
+				+ $el[0].offsetHeight
+			].join('|');
+		}, updateLayout);
 
-		scope.$on('$destroy', function() {
-			// window event
-			try {
-				$win.off('resize', windowResize);
-				$win.off('scroll', windowScroll);
-			} catch (e) {}
-
-			// scope methods
-			scope.headerColumnClick = null;
-
-			// grid properties
-			grid._data = null;
-			grid.selectedItems = null;
-			grid.visibleItems = null;
-			grid.columns = null;
-			grid.columnDefs = null;
-			grid.enabledColumns = null;
-			grid.$parse = null;
-			grid.$scope = null;
-
-			// references to grid
-			grid = null;
-			scope.grid = null;
-
-			// dom elements
-			$el = null;
-			$headerViewport = null;
-			$headerContent = null;
-			$bodyViewport = null;
-			bodyViewportElement = null;
-			$bodyViewportContent = null;
-			$bodyContent = null;
-			scope = null;
-        });
-
-		scope.$watch('grid.height', debounce(function(height){
-			if (typeof height !== 'undefined' && height !== '' && height !== null) {
-				$el.css('height', height);
-			}
-
-			$timeout(function(){
-				updateHeight();
-			});
-		}, 50));
-
-		$headerViewport.css('margin-right', scrollBarWidth + 'px');
+		$win.on('resize', updateLayout);
 
 		scope.$watch('grid.totalHeight', debounce(function(height){
 			if (typeof height === 'undefined' || height === null) {
 				return;
 			}
 			$bodyViewportContent.css('height', height + 'px');
-		}, 50));
-
-		scope.$watch('grid.headerRowHeight', debounce(function(height){
-			$timeout(function(){
-				updateHeight();
-			});
 		}, 50));
 
 		scope.headerColumnClick = function(column, index) {
@@ -921,8 +898,25 @@ angular.module('mfGrid', [])
 			var oldPixelsBefore = grid.pixelsBefore,
 				oldVisibleItems = grid.visibleItems.length,
 				scrollTop;
+
 			if (isWindow) {
 				scrollTop = Math.max(0, window.scrollY - $el.offset().top);
+
+				if (scrollTop > 0) {
+					$headerViewport.css({
+						position: 'fixed',
+						top: 0,
+						left: $bodyViewport.offset().left,
+						width: $bodyViewport.width()
+					});
+				} else {
+					$headerViewport.css({
+						position: '',
+						top: '',
+						left: '',
+						width: ''
+					});
+				}
 			} else {
 				scrollTop = bodyViewportElement.scrollTop;
 			}
@@ -940,6 +934,14 @@ angular.module('mfGrid', [])
 		bodyViewportElement.addEventListener('scroll', onScroll);
 		bodyViewportElement.addEventListener('touchmove', onScroll);
 		bodyViewportElement.addEventListener('gesturechange', onScroll);
+
+		var windowScroll = debounce(function() {
+			if (!isWindow) {
+				return;
+			}
+			onScroll();
+		}, 10);
+		$win.on('scroll', windowScroll);
 
 		function getItem($checkbox) {
 			var scope = $checkbox.closest('.grid-row').scope();
@@ -983,6 +985,41 @@ angular.module('mfGrid', [])
 			grid.selectItem(getItem(angular.element(this)), this.checked, e);
 			scope.$apply();
 		});
+
+		scope.$on('$destroy', function() {
+			// window event
+			try {
+				$win.off('resize', updateLayout);
+				$win.off('scroll', windowScroll);
+			} catch (e) {}
+
+			// scope methods
+			scope.headerColumnClick = null;
+
+			// grid properties
+			grid._data = null;
+			grid.selectedItems = null;
+			grid.visibleItems = null;
+			grid.columns = null;
+			grid.columnDefs = null;
+			grid.enabledColumns = null;
+			grid.$parse = null;
+			grid.$scope = null;
+
+			// references to grid
+			grid = null;
+			scope.grid = null;
+
+			// dom elements
+			$el = null;
+			$headerViewport = null;
+			$headerContent = null;
+			$bodyViewport = null;
+			bodyViewportElement = null;
+			$bodyViewportContent = null;
+			$bodyContent = null;
+			scope = null;
+        });
 	};
 
 	return {
@@ -1031,6 +1068,7 @@ angular.module('mfGrid', [])
 					$el[isSelected ? 'addClass' : 'removeClass']('grid-row-selected');
 				}
 			};
+			checkSelection();
 			scope.$on('mf-grid-selection-change', checkSelection);
 
 			// row index out of all rows
@@ -1052,7 +1090,7 @@ angular.module('mfGrid', [])
 			el.className += ' ' + scope.column.getCellClassName();
 
 			var oldValue = '';
-			scope.$watch(function(){
+			var updateValue = function() {
 				var value = scope.column.getFilteredValue(scope.item, scope.$parent);
 				if (value === null || typeof value === 'undefined') {
 					value = '';
@@ -1060,7 +1098,9 @@ angular.module('mfGrid', [])
 				if (value !== oldValue) {
 					el.textContent = oldValue = value;
 				}
-			}, function() {
+			};
+
+			scope.$watch(updateValue, function() {
 				// noop
 			});
 		}
