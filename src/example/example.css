@@ -1,7 +1,7 @@
 body {
 	margin: 0;
 	padding: 0;
-	background: #666;
+	background: #bbb;
 	font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -38,5 +38,5 @@ body {
 input.filter-text {
 	height: 25px;
 	padding: 5px;
-	border: 1px solid #ccc;
+	border: 0px solid #ccc;
 }
