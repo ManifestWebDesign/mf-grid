@@ -1038,28 +1038,8 @@ angular.module('mfGrid', [])
 				scope.itemIndex = (grid.itemsBefore || 0) + scope.$index;
 			};
 			scope.$on('mf-grid-items-before-change', updateIndex);
+			scope.$on('mf-grid-items-before-change', checkSelection);
 			updateIndex();
-
-			var values = [];
-
-			scope.$watchCollection(function(){
-				values.length = 0;
-
-				var enabled = grid.enabledColumns;
-				for (var i = 0, l = enabled.length; i < l; ++i) {
-					var column = enabled[i];
-					var value = column.getFilteredValue(scope.item, scope);
-					if (value === null || typeof value === 'undefined') {
-						value = '';
-					}
-					values[column.index] = value;
-				}
-
-				return values;
-			}, function(values) {
-				scope.$broadcast('mf-grid-item-changed', values);
-				checkSelection();
-			}, true);
 		}
 	};
 }])
@@ -1070,11 +1050,15 @@ angular.module('mfGrid', [])
 		link: function(scope, $el) {
 			var el = $el[0];
 			el.className += ' ' + scope.column.getCellClassName();
-			var updateValue = function(event, values) {
-				el.innerHTML = values[scope.column.index];
-			};
 
-			scope.$on('mf-grid-item-changed', updateValue);
+			scope.$watch(function(){
+				return scope.column.getFilteredValue(scope.item, scope.$parent);
+			}, function(value) {
+				if (value === null || typeof value === 'undefined') {
+					value = '';
+				}
+				el.innerHTML = value;
+			});
 		}
 	};
 }]);
