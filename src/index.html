@@ -28,7 +28,7 @@
 		<![endif]-->
 
 		<!-- Add your site or application content here -->
-		<div class="container" ng-controller="MainCtrl">
+		<div class="container" ng-class="{ 'fixed': !layout.inline, 'inline': layout.inline }" ng-controller="MainCtrl">
 
 			<div class="filters">
 				<input ng-model="filterText" class="filter-text" placeholder="Search..." />
@@ -39,6 +39,14 @@
 				&nbsp;
 				<label>
 					<input type="checkbox" ng-model="gridOpts.showSelectionCheckbox" /> Show Checkboxes
+				</label>
+				&nbsp;
+				<label>
+					<input type="checkbox" ng-model="layout.inline" /> Inline
+				</label>
+				&nbsp;
+				<label ng-if="layout.inline">
+					<input type="checkbox" ng-model="gridOpts.pinHeaderRow" /> Pin Header
 				</label>
 <!--				&nbsp;
 				<label>

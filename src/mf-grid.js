@@ -190,6 +190,7 @@ MfGridCtrl.prototype = {
 	columnDefs: null,
 	showSelectionCheckbox: false,
 	showHeaderRow: true,
+	pinHeaderRow: false,
 	columns: null,
 	enabledColumns: null,
 	selectedItems: null,
@@ -842,10 +843,11 @@ angular.module('mfGrid', [])
 		scope.$watch(function() {
 			return [
 				grid.height,
-				+ grid.showHeaderRow,
-				+ grid.headerRowHeight,
-				+ $headerViewport[0].offsetHeight,
-				+ $el[0].offsetHeight
+				grid.showHeaderRow,
+				grid.headerRowHeight,
+				$headerViewport[0].offsetHeight,
+				$el[0].offsetHeight,
+				$el.isAutoHeight()
 			].join('|');
 		}, updateLayout);
 
@@ -902,7 +904,7 @@ angular.module('mfGrid', [])
 			if (isWindow) {
 				scrollTop = Math.max(0, window.scrollY - $el.offset().top);
 
-				if (scrollTop > 0) {
+				if (scrollTop > 0 && grid.pinHeaderRow) {
 					$headerViewport.css({
 						position: 'fixed',
 						top: 0,

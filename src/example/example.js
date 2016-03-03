@@ -8,6 +8,10 @@ angular.module('app', [
 
 	$scope.data = [];
 
+	$scope.layout =  {
+		inline: false
+	};
+
 	$scope.data.push({});
 	var now = new Date().getTime();
 

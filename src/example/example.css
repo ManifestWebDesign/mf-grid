@@ -7,10 +7,13 @@ body {
 
 .container {
 	margin: auto;
-	max-width: 1000px;
 }
 
-.custom-grid {
+.inline .custom-grid  {
+
+}
+
+.fixed .custom-grid {
 	position: absolute;
 	top: 50px;
 	bottom: 50px;
@@ -18,11 +21,18 @@ body {
 	right: 50px;
 }
 
-.filters {
+.inline .filters {
+}
+
+.fixed .filters {
 	top: 25px;
 	left: 50px;
 	position: absolute;
 	z-index: 500;
+}
+
+.inline {
+	margin: 0 50px;
 }
 
 input.filter-text {
