@@ -30,7 +30,6 @@ var defaultHeaderRowTemplate = '<div class="grid-row">'
 var defaultRowTemplate = '<div'
 + ' mf-grid-row'
 + ' ng-repeat="item in grid.visibleItems track by $index"'
-+ ' ng-class="rowClass"'
 + ' class="grid-row">'
 + '<div ng-if="grid.showSelectionCheckbox" class="grid-column grid-checkbox-column">'
 + '<input ng-checked="isSelected" type="checkbox" />'
@@ -269,9 +268,8 @@ MfGridCtrl.prototype = {
 	},
 	updateVisibleItems: function() {
 		var rowHeight = this.rowHeight,
-			height = this.viewportHeight,
 			totalItems = this._data.length,
-			maxVisibleItems = Math.ceil(height / rowHeight);
+			maxVisibleItems = Math.ceil(this.viewportHeight / rowHeight);
 
 		this.totalHeight = totalItems * rowHeight;
 		this.pixelsBefore = 0;
@@ -294,7 +292,7 @@ MfGridCtrl.prototype = {
 		this.pixelsBefore = this.itemsBefore * rowHeight;
 
 		var end = Math.min(this.itemsBefore + maxVisibleItems + (bleed + adjustment), totalItems);
-		this.visibleItems = this._data && typeof this._data.slice == 'function' ? this._data.slice(this.itemsBefore, end) : [];
+		this.visibleItems = this._data && typeof this._data.slice === 'function' ? this._data.slice(this.itemsBefore, end) : [];
 	},
 	isItemSelected: function(item) {
 		return this.selectedItems.indexOf(item) !== -1;
@@ -704,10 +702,11 @@ angular.module('mfGrid', [])
 
 		scope.$watchCollection(function(){
 			return $dataGetter(scope.$parent);
-		}, function(r) {
-			grid.setData(r);
+		}, function(rows) {
+			grid.setData(rows);
 			$timeout(function(){
 				updateHeight();
+				scope.$broadcast('mf-grid-data-change', rows);
 			});
 		});
 
@@ -902,12 +901,13 @@ angular.module('mfGrid', [])
 		};
 
 		function updateOffsetTop() {
-			$bodyContent[0].style.marginTop = grid.pixelsBefore + 'px';
+//			$bodyContent[0].style.marginTop = grid.pixelsBefore + 'px';
 
-//			$bodyContent[0].style.transform = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
-//			$bodyContent[0].style['-webkit-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
-//			$bodyContent[0].style['-moz-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
-//			$bodyContent[0].style['-ms-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+			// translate3d seems to render better for Safari
+			$bodyContent[0].style.transform = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+			$bodyContent[0].style['-webkit-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+			$bodyContent[0].style['-moz-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
+			$bodyContent[0].style['-ms-transform'] = 'translate3d(0px,' + grid.pixelsBefore + 'px, 0px)';
 		}
 
 		scope.$watch('grid.pixelsBefore', updateOffsetTop);
@@ -1010,15 +1010,11 @@ angular.module('mfGrid', [])
 .directive('mfGridRow', [function() {
 	return {
 		restrict: 'A',
-		link: function(scope, $el, attrs) {
+		link: function(scope, $el) {
 			var grid = scope.grid;
 			$el[0].style.height = grid.rowHeight + 'px';
 
-			scope.itemIndex = (grid.itemsBefore || 0) + scope.$index;
-			scope.$on('mf-grid-items-before-change', function() {
-				scope.itemIndex = grid.itemsBefore + scope.$index;
-			});
-
+			// odd or even row coloring class
 			scope.rowClass = {};
 			if (scope.$index % 2 === 0) {
 				$el.addClass('grid-row-odd');
@@ -1026,11 +1022,44 @@ angular.module('mfGrid', [])
 				$el.addClass('grid-row-even');
 			}
 
-			scope.$on('mf-grid-selection-change', function() {
-				var isSelected = grid.isItemSelected(scope.item);
-				scope.isSelected = isSelected;
-				scope.rowClass['grid-row-selected'] = isSelected;
-			});
+			// row select state
+			var checkSelection = function() {
+				var oldValue = scope.isSelected;
+				var isSelected = scope.isSelected = grid.isItemSelected(scope.item);
+
+				if (oldValue !== isSelected) {
+					$el[isSelected ? 'addClass' : 'removeClass']('grid-row-selected');
+				}
+			};
+			scope.$on('mf-grid-selection-change', checkSelection);
+
+			// row index out of all rows
+			var updateIndex = function() {
+				scope.itemIndex = (grid.itemsBefore || 0) + scope.$index;
+			};
+			scope.$on('mf-grid-items-before-change', updateIndex);
+			updateIndex();
+
+			var values = [];
+
+			scope.$watchCollection(function(){
+				values.length = 0;
+
+				var enabled = grid.enabledColumns;
+				for (var i = 0, l = enabled.length; i < l; ++i) {
+					var column = enabled[i];
+					var value = column.getFilteredValue(scope.item, scope);
+					if (value === null || typeof value === 'undefined') {
+						value = '';
+					}
+					values[column.index] = value;
+				}
+
+				return values;
+			}, function(values) {
+				scope.$broadcast('mf-grid-item-changed', values);
+				checkSelection();
+			}, true);
 		}
 	};
 }])
@@ -1038,17 +1067,14 @@ angular.module('mfGrid', [])
 .directive('mfGridColumn', [function() {
 	return {
 		restrict: 'A',
-		link: function(scope, $el, attrs) {
-			$el[0].className += ' ' + scope.column.getCellClassName();
+		link: function(scope, $el) {
+			var el = $el[0];
+			el.className += ' ' + scope.column.getCellClassName();
+			var updateValue = function(event, values) {
+				el.innerHTML = values[scope.column.index];
+			};
 
-			scope.$watch(function(){
-				return scope.column.getFilteredValue(scope.item, scope.$parent);
-			}, function(value){
-				if (typeof value === 'undefined') {
-					value = '';
-				}
-				$el[0].innerHTML = value;
-			});
+			scope.$on('mf-grid-item-changed', updateValue);
 		}
 	};
 }]);
