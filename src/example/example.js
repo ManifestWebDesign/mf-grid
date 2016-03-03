@@ -20,7 +20,7 @@ angular.module('app', [
 		'Brandon',
 		'Jaime'
 	];
-	for (var x = 0; x < 100000; ++x) {
+	for (var x = 0; x < 10000; ++x) {
 		$scope.data.push({
 			foo: 'bar' + x,
 			bar: x,
@@ -29,6 +29,13 @@ angular.module('app', [
 		});
 	}
 	$scope.dateFormat = 'd/M H:m:s.sss';
+
+	function reverse(s) {
+		var o = '';
+		for (var i = s.length - 1; i >= 0; i--)
+			o += s[i];
+		return o;
+	}
 
 	$scope.gridOpts = {
 		data: 'data | filter : filterText',
@@ -53,6 +60,7 @@ angular.module('app', [
 		},
 		rowClick: function(item, itemIndex) {
 			console.log('rowClick(item, itemIndex)', item, itemIndex);
+			item.name = reverse(item.name);
 		},
 		columnDefs: [
 			{ displayName: 'Index', field: 'itemIndex', cellFilter: 'number : 0', width: '75px', cellClass: 'custom-cell-class' },

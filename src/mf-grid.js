@@ -1051,13 +1051,17 @@ angular.module('mfGrid', [])
 			var el = $el[0];
 			el.className += ' ' + scope.column.getCellClassName();
 
+			var oldValue = '';
 			scope.$watch(function(){
-				return scope.column.getFilteredValue(scope.item, scope.$parent);
-			}, function(value) {
+				var value = scope.column.getFilteredValue(scope.item, scope.$parent);
 				if (value === null || typeof value === 'undefined') {
 					value = '';
 				}
-				el.innerHTML = value;
+				if (value !== oldValue) {
+					el.textContent = oldValue = value;
+				}
+			}, function() {
+				// noop
 			});
 		}
 	};
