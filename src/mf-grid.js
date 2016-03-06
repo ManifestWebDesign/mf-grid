@@ -668,7 +668,8 @@ angular.module('mfGrid', [])
 			bodyViewportElement = $bodyViewport[0],
 			$bodyViewportContent = $el.find('.grid-body-viewport-content'),
 			$bodyContent = $el.find('.grid-body-content'),
-			$dataGetter = $parse(grid.data),
+			$dataGetter = $parse(typeof grid.data === 'string' ? grid.data : 'grid.data'),
+			$dataScope = typeof grid.data === 'string' ? scope.$parent : scope,
 			scrollBarWidth = getScrollBarWidth(),
 			scrollContainer = window,
 			$win = $($window);
@@ -702,7 +703,7 @@ angular.module('mfGrid', [])
 		grid.rowHeight = parseInt(grid.rowHeight, 10) || 50;
 
 		scope.$watchCollection(function(){
-			return $dataGetter(scope.$parent);
+			return $dataGetter($dataScope);
 		}, function(rows) {
 			grid.setData(rows);
 			updateLayout();
