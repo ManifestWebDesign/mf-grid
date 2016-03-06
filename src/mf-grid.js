@@ -185,7 +185,6 @@ var MfGridCtrl = function MfGridCtrl($parse) {
 MfGridCtrl.prototype = {
 	_id: null,
 	_data: null,
-	_css: '',
 	afterSelectionChange: null,
 	columnDefs: null,
 	showSelectionCheckbox: false,
@@ -535,25 +534,9 @@ MfGridCtrl.prototype = {
 				++x;
 			}
 		}
-		this._css = this.getCss();
 	},
 	getCssPrefix: function() {
 		return 'mf-grid-' + this._id;
-	},
-	getCss: function() {
-		var prefix = '#' + this.getCssPrefix();
-		var entries = [];
-		var columns = this.columns;
-		if (columns && columns.length) {
-			for (var i = 0, l = columns.length; i < l; ++i) {
-				var column = columns[i];
-				entries.push(prefix + ' .' + column.getClassName() + ' {\n\
-width: ' + column.getWidth() + ';\n\
-}');
-			}
-		}
-
-		return entries.join('\n');
 	},
 	setData: function(data) {
 		var resort = this._data !== data || this._oldLength !== data.length;
@@ -712,6 +695,7 @@ angular.module('mfGrid', [])
 
 		scope.$watchCollection('grid.columnDefs', function(newColumns, oldColumns) {
 			grid.setColumns(newColumns);
+			updateCss();
 		});
 
 		scope.$watchCollection('grid.selectedItems', function(){
@@ -726,11 +710,6 @@ angular.module('mfGrid', [])
 
 		scope.$watch('grid.multiSelect', function(){
 			grid.updateCheckAll();
-		});
-
-		scope.$watch('grid._css', function(css) {
-			var styleHolder = angular.element('#mf-grid-' + grid._id + '-style')[0];
-			styleHolder.innerHTML = '<style>' + css + '</style>';
 		});
 
 		grid.scrollToItem = function(item, duration) {
@@ -820,6 +799,32 @@ angular.module('mfGrid', [])
 			$headerViewport.css('margin-right', scope.scrollbarWidth + 'px');
 		};
 
+		scope.css = '';
+		var updateCss = function() {
+			var prefix = '#' + grid.getCssPrefix();
+			var entries = [];
+			var columns = grid.columns;
+			var elementWidth = $el[0].offsetWidth;
+
+			if (columns && columns.length) {
+				for (var i = 0, l = columns.length; i < l; ++i) {
+					var column = columns[i];
+					var width = column.getWidth();
+					if (width.indexOf('%') !== -1) {
+						var percent = width.trim().replace('%', '') / 100;
+						width = Math.floor(percent * elementWidth) + 'px';
+					}
+
+					entries.push(prefix + ' .' + column.getClassName() + ' {\n\
+	width: ' + width + ';\n\
+	}');
+				}
+			}
+
+			var styleContainer = $('#mf-grid-' + grid._id + '-style')[0];
+			styleContainer.innerHTML = '<style>' + entries.join('\n') + '</style>';
+		};
+
 		var updateLayout = debounce(function() {
 			updateHeaderHeight();
 			updateHeight();
@@ -837,6 +842,8 @@ angular.module('mfGrid', [])
 				viewportHeight = bodyViewportElement.offsetHeight;
 			}
 			grid.setViewportHeight(viewportHeight);
+
+			updateCss();
 
 			scope.$digest();
 		}, 20);

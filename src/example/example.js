@@ -74,7 +74,7 @@ angular.module('app', [
 			{ displayName: 'Index', field: 'itemIndex', cellFilter: 'number : 0', width: '75px', cellClass: 'custom-cell-class' },
 			{ displayName: 'Foo', field: 'foo' },
 			{ displayName: 'Bar', field: 'bar' },
-			{ displayName: 'Name', field: 'name' },
+			{ displayName: 'Name', field: 'name', width: '20%' },
 			{ displayName: 'Foo', field: 'foo' },
 			{ displayName: 'Bar', field: 'bar', width: '75px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
