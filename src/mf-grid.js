@@ -64,11 +64,11 @@ jQuery.fn.isAutoHeight = function() {
 function getStringWidth(string, font) {
 	var f = font || '12px arial',
 		o = $('<div>' + string + '</div>').css({
-			'position': 'absolute',
-			'float': 'left',
-			'white-space': 'nowrap',
-			'visibility': 'hidden',
-			'font': f
+			position: 'absolute',
+			float: 'left',
+			whiteSpace: 'nowrap',
+			visibility: 'hidden',
+			font: f
 		}).appendTo($('body')),
 		w = o.width();
 
@@ -351,6 +351,12 @@ MfGridCtrl.prototype = {
 			column.displayName = column.field;
 		}
 
+		if (typeof column.isHtml === 'undefined') {
+			column.isHtml = false;
+		} else {
+			column.isHtml = !!column.isHtml;
+		}
+
 		if (typeof column.visible === 'undefined') {
 			column.visible = true;
 		}
@@ -503,8 +509,12 @@ MfGridCtrl.prototype = {
 			} else if (typeof this.width === 'undefined' || this.width === 'auto') {
 				var longestVal = this.getLongestValue();
 				if (null !== longestVal && typeof longestVal !== 'undefined' && longestVal.length > 0) {
-					var font = $('#' + grid.getCssPrefix() + ' .grid-body-content').css('font');
-					this.width = getStringWidth(longestVal, font) + 28 + 'px';
+					var bodyFont = $('#' + grid.getCssPrefix() + ' .grid-body-content').css('font');
+					var bodyWidth = getStringWidth(longestVal, bodyFont);
+
+					var headerFont = $('#' + grid.getCssPrefix() + ' .grid-header-content').css('font');
+					var headerWidth = getStringWidth(longestVal, headerFont);
+					this.width = Math.max(bodyWidth, headerWidth) + 28 + 'px';
 				}
 			}
 
@@ -1102,12 +1112,22 @@ angular.module('mfGrid', [])
 
 			var oldValue = '';
 			var updateValue = function() {
-				var value = scope.column.getFilteredValue(scope.item, scope.$parent);
+				try {
+					var value = scope.column.getFilteredValue(scope.item, scope.$parent);
+				} catch (e) {
+					console && console.log(e);
+					return;
+				}
+
 				if (value === null || typeof value === 'undefined') {
 					value = '';
 				}
 				if (value !== oldValue) {
-					el.textContent = oldValue = value;
+					if (scope.column.isHtml) {
+						el.innerHTML = oldValue = value;
+					} else {
+						el.textContent = oldValue = value;
+					}
 				}
 			};
 

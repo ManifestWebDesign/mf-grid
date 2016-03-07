@@ -79,7 +79,7 @@ angular.module('app', [
 			{ displayName: 'Bar', field: 'bar', width: '75px' },
 			{ displayName: 'Name', field: 'name', width: '100px' },
 			{ displayName: 'Foo', field: 'foo', width: '75px' },
-			{ displayName: 'Bar', field: 'bar', width: '75px' },
+			{ displayName: 'Html', field: '\'<span style="color: red">HTML</span>\'', width: '75px', isHtml: true },
 			{ displayName: 'Name', field: 'name', width: '100px' },
 			{ displayName: 'scope.dateFormat', field: 'dateFormat' },
 			{ displayName: 'Date + dateFormat', field: 'time', width: '200px', cellFilter: "date : dateFormat" },
