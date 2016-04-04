@@ -23,7 +23,7 @@ var defaultHeaderRowTemplate = '<div class="grid-row">'
 + ' title="{{ column.displayName }}"'
 + ' class="grid-column {{ column.getHeaderClassName() }}">{{ column.displayName }}'
 + '<div'
-+ ' ng-show="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
++ ' ng-if="grid.enableSorting && grid.sortColumn && grid.sortColumn.field === column.field"'
 + ' class="grid-sort-icon glyphicon glyphicon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }} icon-chevron-{{ grid.sortAsc ? \'up\' : \'down\' }}"></div>'
 + '</div>'
 + '</div>';

@@ -1,6 +1,6 @@
 {
 	"name": "mf-grid",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"appPath": "src",
 	"main": "src/mf-grid.js",
 	"dependencies": {
