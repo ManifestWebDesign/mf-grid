@@ -866,6 +866,7 @@ angular.module('mfGrid', [])
 				grid.headerRowHeight,
 				$headerViewport[0].offsetHeight,
 				$el[0].offsetHeight,
+				$el[0].offsetWidth,
 				$el.isAutoHeight()
 			].join('|');
 		}, updateLayout);
