@@ -1,6 +1,6 @@
 {
   "name": "angular-grid",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "This directive gives you gridster behavior",
   "devDependencies": {
     "grunt": "~0.4.1",

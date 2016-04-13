@@ -1020,11 +1020,11 @@ angular.module('mfGrid', [])
 
 			// grid properties
 			grid._data = null;
-			grid.selectedItems = null;
-			grid.visibleItems = null;
-			grid.columns = null;
-			grid.columnDefs = null;
-			grid.enabledColumns = null;
+			grid.selectedItems = [];
+			grid.visibleItems = [];
+			grid.columns = [];
+			grid.columnDefs = [];
+			grid.enabledColumns = [];
 			grid.$parse = null;
 			grid.$scope = null;
 
