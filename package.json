@@ -1,5 +1,5 @@
 {
-  "name": "angular-grid",
+  "name": "mf-grid",
   "version": "0.1.12",
   "description": "This directive gives you gridster behavior",
   "devDependencies": {
