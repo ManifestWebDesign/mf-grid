@@ -35,10 +35,10 @@ module.exports = function (grunt) {
 //        files: ['test/spec/{,*/}*.js'],
 //        tasks: ['newer:jshint:test', 'karma:unit']
 //      },
-	  e2eTest: {
-		  files: ['test/e2e/{,*/}*.js'],
-		  tasks: ['karma:e2e']
-	  },
+      e2eTest: {
+        files: ['test/e2e/{,*/}*.js'],
+        tasks: ['karma:e2e']
+      },
       styles: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.css'],
         tasks: ['newer:copy:styles', 'autoprefixer']
@@ -314,10 +314,10 @@ module.exports = function (grunt) {
         configFile: 'karma.conf.js',
         singleRun: true
       },
-	  e2e: {
-		  configFile: 'karma-e2e.conf.js',
-		  singleRun: true
-	  }
+      e2e: {
+        configFile: 'karma-e2e.conf.js',
+        singleRun: true
+      }
     }
   });
 
@@ -346,7 +346,7 @@ module.exports = function (grunt) {
     'concurrent:test',
     'autoprefixer',
     'connect:test',
-    'karma'
+    'karma:unit'
   ]);
 
   grunt.registerTask('build', [
