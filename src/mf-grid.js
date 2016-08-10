@@ -304,7 +304,7 @@ MfGridCtrl.prototype = {
 			this.selectedItems.length = 1;
 			this.selectedItems[0] = last;
 		}
-		this.allItemsSelected = this._data.length === this.selectedItems.length;
+		this.allItemsSelected = this._data && this._data.length === this.selectedItems.length;
 	},
 	selectItem: function(item, selected) {
 		if (this.multiSelect === false) {
