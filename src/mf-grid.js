@@ -665,7 +665,7 @@ angular.module('mfGrid', [])
 			$dataGetter = $parse(typeof grid.data === 'string' ? grid.data : 'grid.data'),
 			$dataScope = typeof grid.data === 'string' ? scope.$parent : scope,
 			scrollBarWidth = getScrollBarWidth(),
-			scrollContainer = window,
+			$scrollContainer = $('body, html'),
 			$win = $($window);
 
 		if (!bodyViewportElement) {
@@ -728,10 +728,14 @@ angular.module('mfGrid', [])
 			$timeout(function(){
 				var index = grid._data.indexOf(item);
 				if (index === -1) {
-					return;
+					if (typeof item === 'number') {
+						index = item;
+					} else {
+						return;
+					}
 				}
 
-				$(scrollContainer).animate({
+				$scrollContainer.animate({
 					scrollTop: index * grid.rowHeight
 				}, duration);
 			});
@@ -778,11 +782,11 @@ angular.module('mfGrid', [])
 
 			// make content match grid height
 			if ($el.isAutoHeight()) {
-				scrollContainer = window;
+				$scrollContainer = $('body, html');
 				isWindow = true;
 				$bodyViewport.css('position', 'static');
 			} else {
-				scrollContainer = bodyViewportElement;
+				$scrollContainer = $bodyViewport;
 				isWindow = false;
 				$bodyViewport.css({
 					position: 'absolute',

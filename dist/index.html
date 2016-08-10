@@ -44,6 +44,10 @@
 				<label ng-if="layout.inline">
 					<input type="checkbox" ng-model="gridOpts.pinHeaderRow"> Pin Header
 				</label>
+
+                <label>
+                    <button ng-click="gridOpts.scrollToItem(data.length - 1, 1000)">Scroll to last item</button>
+                </label>
 <!--				&nbsp;
 				<label>
 					<input type="checkbox" ng-model="gridOpts.snapping" /> Snapping
