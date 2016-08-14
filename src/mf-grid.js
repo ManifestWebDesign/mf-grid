@@ -506,7 +506,7 @@ MfGridCtrl.prototype = {
 		column.getWidth = function() {
 			if (typeof this.width === 'number') {
 				this.width += 'px';
-			} else if (typeof this.width === 'undefined' || this.width === 'auto') {
+			} else if (this.width === null || typeof this.width === 'undefined' || this.width === 'auto') {
 				var longestVal = this.getLongestValue();
 				if (null !== longestVal && typeof longestVal !== 'undefined' && longestVal.length > 0) {
 					var bodyFont = $('#' + grid.getCssPrefix() + ' .grid-body-content').css('font');
@@ -515,6 +515,8 @@ MfGridCtrl.prototype = {
 					var headerFont = $('#' + grid.getCssPrefix() + ' .grid-header-content').css('font');
 					var headerWidth = getStringWidth(longestVal, headerFont);
 					this.width = Math.max(bodyWidth, headerWidth) + 28 + 'px';
+				} else {
+					this.width = '28px';
 				}
 			}
 
