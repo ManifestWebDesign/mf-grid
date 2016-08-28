@@ -540,6 +540,9 @@ MfGridCtrl.prototype = {
 		} else if (this._data.length > 0) {
 			var x = 0;
 			for (var col in this._data[0]) {
+				if (!this._data[0].hasOwnProperty(col)) {
+					continue;
+				}
 				var column = this.buildColumn(col);
 				column.index = x;
 				this.columns.push(column);
@@ -821,7 +824,7 @@ angular.module('mfGrid', [])
 			var prefix = '#' + grid.getCssPrefix();
 			var entries = [];
 			var columns = grid.columns;
-			var elementWidth = $el[0].offsetWidth;
+			var elementWidth = $bodyViewport.innerWidth();
 
 			if (columns && columns.length) {
 				for (var i = 0, l = columns.length; i < l; ++i) {

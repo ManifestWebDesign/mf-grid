@@ -1,6 +1,6 @@
 {
   "name": "mf-grid",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "appPath": "src",
   "main": [
     "src/mf-grid.js",
