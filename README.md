@@ -72,7 +72,8 @@ selectedItems | [] | All of the items selected in the grid. In single select mod
 selectItem | See below | Function that is appended to the specific grid options for users to programmatically select the row based on the index of the entity in the data array option.
 showHeaderRow | true | Control the visibility of the header row.
 showSelectionCheckbox | false | Row selection check boxes appear as the first column.
-sortInfo | { fields: [], directions: [] } | Define a sortInfo object to specify a default sorting state. Directions are case-insensitive.
+sortColumn | null | A column object to specify initial sorting column.
+sortAsc | null | Boolean for initial sorting to be in Ascending order.
 trackItemBy | null | Primary tracking column for row
 virtualizationInterval | 2 | Number of rows.
 virtualizationOverflow | 4 | Number of rows to virtualize outside of the viewport.
