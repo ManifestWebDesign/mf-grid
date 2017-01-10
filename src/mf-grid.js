@@ -243,17 +243,20 @@ MfGridCtrl.prototype = {
 				return 0;
 			}
 			if (hasA && !hasB) {
-				return -1;
+				return asc ? -1 : 1;
 			}
 			if (!hasA && hasB) {
-				return 1;
+				return asc ? 1 : -1;
 			}
 
 			if (typeof sortFn === 'undefined') {
 				sortFn = sortService.guessSortFn(a);
 			}
-
-			return sortFn(a, b);
+			if (asc) {
+				return sortFn(a, b);
+			} else {
+				return sortFn(b, a);
+			}
 		});
 	},
 	isColumnSortable: function(column) {
@@ -594,7 +597,17 @@ MfGridCtrl.prototype = {
 		this.setColumns(this.columnDefs);
 
 		if (resort && typeof this.headerColumnClick !== 'function' && this.sortColumn) {
-			this.sortByColumn(this.sortColumn, this.sortAsc);
+			//Replace sortColumn
+			if (typeof this.sortColumn.getRawValue !== 'function') {
+				for(var i = 0; i < this.columnDefs.length; i++) {
+					if (this.columnDefs[i].field === this.sortColumn.field) {
+						this.sortByColumn(this.columnDefs[i], this.sortAsc);
+						break;
+					}
+				}
+			} else {
+				this.sortByColumn(this.sortColumn, this.sortAsc);
+			}
 		}
 
 		this.updateVisibleItems();
@@ -906,6 +919,8 @@ angular.module('mfGrid', [])
 			} else {
 				grid.sortByColumn(column, grid.sortAsc);
 			}
+
+			scope.$emit('headerClicked', {column:column, sortAsc:grid.sortAsc});
 		};
 
 		function updateOffsetTop() {
